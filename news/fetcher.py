@@ -86,6 +86,17 @@ def fetch_source(source: NewsSource):
                 verify_article(art)
             except Exception as ve:
                 log.warning("Auto-verify failed for %s: %s", art.id, ve)
+        # AI cover photos for a bounded batch of new stories (Pollinations/FLUX,
+        # free, no key). Failure is non-fatal: the SVG illustration is the fallback.
+        from django.conf import settings as _s2
+        cover_limit=getattr(_s2,"AUTO_COVERS_PER_SOURCE",3)
+        for art in new_articles[:cover_limit]:
+            try:
+                from news.ai_image import fetch_ai_cover
+                data=fetch_ai_cover(art)
+                if data: art.cover_jpeg=data; art.save(update_fields=["cover_jpeg"])
+            except Exception as ce:
+                log.warning("AI cover generation failed for %s: %s", art.id, ce)
         source.last_status="success"
     except Exception as e:
         errors.append(str(e)[:500]); source.last_status=f"failed: {str(e)[:40]}"; log.warning("Fetch failed %s: %s",source.name,e)

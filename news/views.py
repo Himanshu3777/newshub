@@ -54,6 +54,10 @@ def cover(request,pk):
     from django.http import HttpResponse, Http404
     try: art=NewsArticle.objects.select_related("category","source").get(id=pk)
     except NewsArticle.DoesNotExist: raise Http404
+    if art.cover_jpeg:
+        resp=HttpResponse(bytes(art.cover_jpeg),content_type="image/jpeg")
+        resp["Cache-Control"]="public, max-age=604800"
+        return resp
     from news.ai_content import cover_svg
     resp=HttpResponse(cover_svg(art),content_type="image/svg+xml")
     resp["Cache-Control"]="public, max-age=86400"
