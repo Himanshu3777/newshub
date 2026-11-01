@@ -1,0 +1,7 @@
+<div class="card h-100"><img src="/cover/{{a.id}}/" class="card-img-top card-img" alt="NewsHub AI illustration" loading="lazy">
+<div class="card-body"><span class="cat-label">{{a.category.name|default:"News"}}</span>
+<h5 class="card-title serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h5>
+{% if a.summary %}<p class="card-text small text-muted">{{a.ai_brief|truncatechars:150}}</p>{% endif %}
+{% if a.is_unconfirmed %}<span class="source-note">{{a.source_note}}</span><br>{% endif %}
+<span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M, H:i"}}</span>
+</div><div class="card-footer"><a href="/news/{{a.slug}}/" class="btn btn-sm btn-outline-gold">Read story</a> <a href="{{a.source_url}}" target="_blank" rel="noopener" class="btn btn-sm btn-link">Read at publisher →</a></div></div>

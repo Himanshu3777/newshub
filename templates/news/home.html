@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block content %}
+{% if breaking %}<div class="ticker"><div class="container">{% for b in breaking %}<span class="badge-breaking">BREAKING</span><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{b.slug}}/">{{b.title}}</a> <span class="text-muted">· {{b.source.name}} · {{b.published_at|date:"H:i"}}</span>{% if not forloop.last %} &nbsp;|&nbsp; {% endif %}{% endfor %}</div></div>{% endif %}
+<div class="container py-4">
+<div class="row g-3">
+<div class="col-lg-8">{% if top_story %}<div class="hero-panel h-100">
+<div class="hero-img mb-3"><img src="/cover/{{top_story.id}}/" alt="NewsHub AI illustration"></div>
+<span class="cat-label">{{top_story.category.name|default:"Top Story"}}</span>
+<h1 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{top_story.slug}}/">{{top_story.title}}</a></h1>
+{% if top_story.is_unconfirmed %}<span class="source-note">{{top_story.source_note}}</span> {% endif %}
+<span class="text-muted small">{{top_story.source.name}} · {{top_story.published_at|date:"d M Y, H:i"}}</span>
+<span class="float-end"><a href="{{top_story.source_url}}" target="_blank" rel="noopener">Read at publisher →</a></span>
+</div>{% else %}<div class="alert alert-info">No news fetched yet. Admin: run seed + fetch.</div>{% endif %}</div>
+<div class="col-lg-4"><div class="hero-panel h-100"><div class="cat-label mb-2">Trending Now</div>
+{% for t in trending %}<div class="d-flex gap-3 py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="trend-num">{{forloop.counter}}</span><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{t.slug}}/">{{t.title|truncatechars:90}}</a><br><span class="small text-muted">{{t.source.name}} · {{t.published_at|date:"H:i"}}</span></div></div>{% endfor %}
+</div></div></div>
+<div class="d-flex justify-content-between align-items-center mt-5"><h2 class="serif">Top stories</h2><a href="/news/">All news →</a></div>
+<div class="row g-3">{% for a in top_stories %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
+<h2 class="serif mt-5">Latest</h2>
+<div class="row g-3">{% for a in latest %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
+<div class="stats-strip mt-5"><div class="row text-center">
+<div class="col-md-3"><div class="num">{{stats.today}}</div><span class="text-muted">Stories today</span></div>
+<div class="col-md-3"><div class="num" style="color:#4ade80">{{stats.publishers}}</div><span class="text-muted">Publishers</span></div>
+<div class="col-md-3"><div class="num" style="color:var(--nh-brown-text)">{{stats.categories}}</div><span class="text-muted">Categories</span></div>
+<div class="col-md-3"><div class="num" style="color:var(--nh-gold)">{{stats.total}}</div><span class="text-muted">Stories collected · updated every 30 min</span></div>
+</div></div>
+</div>{% endblock %}

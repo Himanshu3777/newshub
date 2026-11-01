@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Check a Claim - NewsHub{% endblock %}{% block content %}<div class="container py-4"><div class="row"><div class="col-lg-7">
+<h1 class="serif">Check a social media claim</h1>
+<p class="text-muted">Got a viral Instagram reel, WhatsApp forward, Facebook post or X claim? Paste it here before you believe or forward it. We check it against publisher reporting and existing fact-checks. Your submission is <b>never published as news</b>.</p>
+<form method="post" class="hero-panel">{% csrf_token %}
+<label class="small fw-semibold">Where did you see it?</label>
+<select name="platform" class="form-select mb-3"><option value="instagram">Instagram</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="x">X / Twitter</option><option value="youtube">YouTube</option><option value="other">Other</option></select>
+<label class="small fw-semibold">Post / claim text</label>
+<textarea name="claim_text" class="form-control mb-3" rows="4" placeholder="Paste the full message or describe the video claim..." required></textarea>
+<label class="small fw-semibold">Link (optional)</label>
+<input name="source_url" class="form-control mb-3" placeholder="https://...">
+<button class="btn btn-gold btn-lg">Check this claim</button></form>
+{% if result %}<div class="mt-4 {% if result.result == 'confirmed' %}result-confirmed{% elif result.result == 'contradicted' %}result-fake{% else %}result-unconfirmed{% endif %}">
+<h4 class="serif">{% if result.result == 'confirmed' %}✓ Confirmed by a publisher{% elif result.result == 'contradicted' %}✕ Contradicted — likely fake{% else %}⚠ Not confirmed{% endif %}</h4>
+<p class="mb-2">{{result.result_note}}</p>
+{% if result.matched_article %}<a href="/news/{{result.matched_article.slug}}/" class="btn btn-gold btn-sm">Read the matched story</a>{% endif %}
+<span class="small d-block mt-2">Reference: Claim #{{result.id}} · Checked just now · Automated check — an editor can review it from the admin queue.</span></div>{% endif %}
+</div><div class="col-lg-5"><div class="hero-panel"><div class="cat-label mb-3">Recently checked by readers</div>
+{% for c in recent %}<div class="py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="small text-muted">{{c.get_platform_display}} · {{c.created_at|date:"d M H:i"}}</span><br>{{c.claim_text|truncatechars:110}}<br><b>{% if c.result == 'confirmed' %}<span style="color:#4ade80">Confirmed</span>{% elif c.result == 'contradicted' %}<span style="color:#f87171">Contradicted / Fake</span>{% else %}<span style="color:var(--nh-brown-text)">Not confirmed</span>{% endif %}</b></div>{% empty %}<p class="text-muted small">No claims checked yet.</p>{% endfor %}
+</div></div></div></div>{% endblock %}

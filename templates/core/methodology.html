@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block content %}<div class="container py-4">
+<h1 class="serif">How NewsHub works</h1>
+<p class="text-muted" style="max-width:720px">We collect headlines from permitted publisher feeds. When a report comes only from a viral post and nobody has confirmed it, we say so clearly. We always link to the original publisher.</p>
+<div class="row g-3 mt-2">
+{% for n,t in steps %}{% endfor %}
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">1</div><b>Collect</b></div></div>
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">2</div><b>Clean and dedupe</b></div></div>
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">3</div><b>Sensitive check</b></div></div>
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">4</div><b>Mark unconfirmed</b></div></div>
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">5</div><b>Editor check</b></div></div>
+<div class="col-md-2"><div class="hero-panel h-100"><div class="step-num">6</div><b>Publish and link</b></div></div>
+</div>
+<h2 class="serif mt-5">Methodology</h2>
+<div class="row g-3">
+<div class="col-md-4"><div class="hero-panel h-100"><b>Data sources</b><p class="text-muted mt-2 mb-0">Official RSS feeds and authorized APIs only. No paywall or CAPTCHA bypass. Only metadata and short summaries are stored.</p></div></div>
+<div class="col-md-4"><div class="hero-panel h-100"><b>Unconfirmed reports</b><p class="text-muted mt-2 mb-0">Reports that come only from viral posts or videos are shown with a clear note that they are not confirmed. We never state them as fact.</p></div></div>
+<div class="col-md-4"><div class="hero-panel h-100"><b>Correction policy</b><p class="text-muted mt-2 mb-0">Anyone can submit a correction. An editor reviews it, and every correction is logged and dated.</p></div></div>
+</div>
+<h2 class="serif mt-5">How we handle fake and social-media news</h2>
+<div class="hero-panel">
+<p>• Stories our verification finds <b>false, misleading or disputed</b> are <b>removed from the home page, news feed, search and API</b> automatically. They stay visible only on the Fact Check page, clearly marked, so readers can see what was flagged and why.</p>
+<p>• News that starts on <b>Instagram, WhatsApp, Facebook, X or YouTube</b> is never published as confirmed news. If a publisher reports a claim that comes from a viral post, the story carries a source note until an official source or another publisher confirms it — then the note is removed automatically.</p>
+<p class="mb-0">• Anyone can paste a viral post or forward into <a href="/check-claim/">Check a Claim</a>. We compare it with publisher reporting and existing fact-checks and answer: confirmed, not confirmed, or contradicted. Submissions are never turned into news articles.</p>
+</div>
+<h2 class="serif mt-5">How we write unconfirmed news</h2>
+<div class="hero-panel"><div class="source-note-box mb-3">"According to a viral Instagram video, [claim]. However, this has not been confirmed."</div>
+<ol class="mb-0"><li>Always say where the claim came from (viral video, social post, unnamed source).</li><li>Always say that it is not confirmed. Never write it as a fact.</li><li>If a publisher or official source confirms it later, the note is removed and the story is updated.</li></ol></div>
+</div>{% endblock %}
