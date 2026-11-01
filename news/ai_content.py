@@ -90,20 +90,23 @@ def qwen_brief(title, facts_text, source_name):
     return _openai_style_brief("https://dashscope-intl.aliyuncs.com/compatible-mode/v1","qwen-plus",
         getattr(settings,"QWEN_API_KEY",""), title, facts_text, source_name)
 
-# Text provider chain, ordered by free-request headroom (most generous first).
-# If a provider has no key, is rate-limited or fails, the next one is tried.
-# The local composer is the final guarantee: a brief is NEVER left unwritten.
-TEXT_PROVIDERS=[("gemini",gemini_brief),("mistral",mistral_brief),("deepseek",deepseek_brief),("qwen",qwen_brief)]
-
+# Text generation now runs through the AI Router (airouter app): quota-aware
+# chains, health/cooldown, caching and logging. This function keeps the old
+# (brief, provider) contract for the fetcher; the article-aware local composer
+# is the router's "local" provider - the final guarantee in every chain.
 def generate_brief(article):
-    published_str=article.published_at.strftime("%d %B %Y")
+    from airouter.router import generate_text
     facts_text=f"Entities: {[n for n,_ in extract_entities(article.title+' '+article.summary)]}; Keywords: {extract_keywords(article.title+' '+article.summary,6)}; Figures: {re.findall(r'[0-9][0-9,\.]*', article.title+' '+article.summary)[:5]}"
-    for name,fn in TEXT_PROVIDERS:
-        brief=fn(article.title, facts_text, article.source.name)
-        if brief: return brief, name
-    brief=local_brief(article.title, article.summary, article.source.name,
-                      article.category.name if article.category else "", published_str, article_seed=article.id or 0)
-    return brief, "local"
+    prompt=_brief_prompt(article.title, facts_text, article.source.name)
+    published_str=article.published_at.strftime("%d %B %Y")
+    def _local(_prompt):
+        return local_brief(article.title, article.summary, article.source.name,
+                           article.category.name if article.category else "", published_str,
+                           article_seed=article.id or 0), "local-composer"
+    res=generate_text(prompt, request_class="normal", local_fn=_local)
+    if res.get("success"):
+        return res["content"], res["provider"]
+    return _local(prompt)[0], "local"
 
 # ---------- Original cover illustration (SVG, generated per article) ----------
 PALETTES={

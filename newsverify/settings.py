@@ -12,7 +12,7 @@ INSTALLED_APPS = [
     "django.contrib.admin","django.contrib.auth","django.contrib.contenttypes",
     "django.contrib.sessions","django.contrib.messages","django.contrib.staticfiles",
     "rest_framework","django_filters","corsheaders",
-    "sources","news","verification","moderation","feedback_app","core","api",
+    "sources","news","verification","moderation","feedback_app","core","api","airouter",
 ]
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -50,6 +50,51 @@ MISTRAL_API_KEY=os.environ.get("MISTRAL_API_KEY","")
 DEEPSEEK_API_KEY=os.environ.get("DEEPSEEK_API_KEY","")
 QWEN_API_KEY=os.environ.get("QWEN_API_KEY","")
 HF_TOKEN=os.environ.get("HF_TOKEN","")
+HUGGINGFACE_API_KEY=os.environ.get("HUGGINGFACE_API_KEY","") or HF_TOKEN
+POLLINATIONS_API_KEY=os.environ.get("POLLINATIONS_API_KEY","")
+GROQ_API_KEY=os.environ.get("GROQ_API_KEY","")
+OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY","")
+CLOUDFLARE_ACCOUNT_ID=os.environ.get("CLOUDFLARE_ACCOUNT_ID","")
+CLOUDFLARE_API_TOKEN=os.environ.get("CLOUDFLARE_API_TOKEN","")
+NVIDIA_API_KEY=os.environ.get("NVIDIA_API_KEY","")
+GUARDIAN_API_KEY=os.environ.get("GUARDIAN_API_KEY","")
+GNEWS_API_KEY=os.environ.get("GNEWS_API_KEY","")
+# ---- Zero-billing guard (spec 8): hard defaults, env may only tighten ----
+AI_FREE_ONLY=True
+ALLOW_PAID_APIS=False
+IDEOGRAM_API_KEY=os.environ.get("IDEOGRAM_API_KEY","")
+# ---- AI Router: daily limits are CONFIGURABLE, never hard-coded (spec 14) ----
+def _ailimit(name, default):
+    try: return int(os.environ.get(name, str(default)))
+    except Exception: return default
+AI_DAILY_LIMITS={
+    "gemini_text": _ailimit("GEMINI_DAILY_LIMIT", 200),
+    "mistral_text": _ailimit("MISTRAL_DAILY_LIMIT", 100),
+    "qwen_text": _ailimit("QWEN_DAILY_LIMIT", 100),
+    "deepseek_text": _ailimit("DEEPSEEK_DAILY_LIMIT", 100),
+    "pollinations_text": _ailimit("POLLINATIONS_DAILY_LIMIT", 500),
+    "pollinations_image": _ailimit("POLLINATIONS_IMAGE_DAILY_LIMIT", 500),
+    "gemini_image": _ailimit("GEMINI_IMAGE_DAILY_LIMIT", 25),
+    "huggingface_image": _ailimit("HUGGINGFACE_DAILY_LIMIT", 50),
+    "ideogram_image": _ailimit("IDEOGRAM_DAILY_LIMIT", 0),
+    "local_text": -1, "svg_image": -1,
+    "groq_text": _ailimit("GROQ_DAILY_LIMIT", 500),
+    "openrouter_text": _ailimit("OPENROUTER_DAILY_LIMIT", 200),
+    "cloudflare_text": _ailimit("CLOUDFLARE_DAILY_LIMIT", 300),
+    "cloudflare_image": _ailimit("CLOUDFLARE_IMAGE_DAILY_LIMIT", 100),
+    "huggingface_text": _ailimit("HUGGINGFACE_TEXT_DAILY_LIMIT", 100),
+    "nvidia_text": _ailimit("NVIDIA_DAILY_LIMIT", 100),
+    "svg_text": -1,
+}
+# Monthly configured caps (spec 6); -1/0 = no monthly cap configured.
+AI_MONTHLY_LIMITS={
+    "gemini_text": _ailimit("GEMINI_MONTHLY_LIMIT", 0),
+    "huggingface_text": _ailimit("HUGGINGFACE_MONTHLY_LIMIT", 500),
+    "huggingface_image": _ailimit("HUGGINGFACE_IMAGE_MONTHLY_LIMIT", 500),
+    "openrouter_text": _ailimit("OPENROUTER_MONTHLY_LIMIT", 1000),
+}
+AI_COOLDOWN_MINUTES=_ailimit("AI_COOLDOWN_MINUTES", 10)
+AI_FAILURE_THRESHOLD=_ailimit("AI_FAILURE_THRESHOLD", 3)
 AUTO_VERIFY_PER_SOURCE=int(os.environ.get("AUTO_VERIFY_PER_SOURCE","8"))
 AUTO_COVERS_PER_SOURCE=int(os.environ.get("AUTO_COVERS_PER_SOURCE","3"))
 GOOGLE_CSE_API_KEY=os.environ.get("GOOGLE_CSE_API_KEY","")

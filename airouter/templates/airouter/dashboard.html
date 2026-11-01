@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}AI Router · NewsHub{% endblock %}{% block content %}
+<div class="container py-4">
+<h1 class="serif">AI Traffic Controller — Free API Ecosystem</h1>
+<p class="text-muted">Quota-aware provider chains · din Asia/Kolkata ke hisaab se reset hota hai · limits .env se configurable hain</p>
+<div class="row g-3 mb-4">
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3">{{totals.text_today}}</div><span class="text-muted small">Text aaj</span></div></div>
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3">{{totals.images_today}}</div><span class="text-muted small">Images aaj</span></div></div>
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3" style="color:#4ade80">{{totals.success}}</div><span class="text-muted small">Successful</span></div></div>
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3" style="color:#f87171">{{totals.failed}}</div><span class="text-muted small">Failed</span></div></div>
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3">{{totals.fallbacks}}</div><span class="text-muted small">Fallback use</span></div></div>
+<div class="col-md-2"><div class="hero-panel text-center"><div class="num fs-3">{{totals.cached_hits}}</div><span class="text-muted small">Cache hits (quota bacha)</span></div></div>
+</div>
+<p class="small text-muted">Sabse zyada use hua provider aaj: <strong>{{totals.most_used}}</strong></p>
+<h2 class="serif mt-4">Providers</h2>
+<table class="table"><thead><tr><th>Type</th><th>Provider</th><th>Priority</th><th>Free type</th><th>Status</th><th>Used today</th><th>Used this month</th><th>Daily cap (configured)</th><th>Remaining</th></tr></thead>
+<tbody>{% for r in rows %}<tr><td>{{r.kind}}</td><td class="fw-semibold">{{r.name}}<div class="small text-muted">{{r.provider}}{% if r.key_env %} · key: {{r.key_env}}{% endif %}</div></td>
+<td>P{{r.level}}</td><td class="small">{{r.free_type}}</td>
+<td>{% if r.status == "available" %}<span style="color:#4ade80">● Available</span>{% elif r.status == "disabled_paid" %}<span style="color:#f87171">● PAID — disabled (zero-billing)</span>{% elif r.status == "quota_exhausted" %}<span style="color:#f87171">● Quota exhausted</span>{% elif r.status == "disabled" %}<span class="text-muted">● Disabled (no key/limit 0)</span>{% else %}<span style="color:#fbbf24">● {{r.status}}</span>{% endif %}</td>
+<td>{{r.used}}</td><td>{{r.month_used}}</td><td>{{r.limit}}</td><td>{{r.remaining}}</td></tr>{% endfor %}</tbody></table>
+<p class="small text-muted">Zero-billing guard ON: FREE_ONLY=True · ALLOW_PAID_APIS=False · MAX_BILLING=0. Paid providers (DeepSeek API, Ideogram API) kabhi call nahi hote. Daily caps .env se configurable hain; official limit UNKNOWN ho to conservative cap lagta hai.</p>
+<h2 class="serif mt-4">Recent generation log</h2>
+<table class="table table-sm"><thead><tr><th>Time</th><th>Type</th><th>Provider</th><th>Model</th><th>Result</th><th>Time (ms)</th><th>Fallback</th><th>Reason</th></tr></thead>
+<tbody>{% for l in logs %}<tr><td>{{l.created_at|date:"d M H:i:s"}}</td><td>{{l.request_type}}</td><td>{{l.provider}}</td><td>{{l.model}}</td>
+<td>{% if l.cached %}Cached{% elif l.success %}<span style="color:#4ade80">SUCCESS</span>{% else %}<span style="color:#f87171">FAIL</span>{% endif %}</td>
+<td>{{l.response_ms}}</td><td>{{l.fallback_used}}</td><td class="small text-muted">{{l.failure_reason}}</td></tr>{% empty %}<tr><td colspan="8" class="text-muted">Abhi koi generation log nahi hai.</td></tr>{% endfor %}</tbody></table>
+</div>{% endblock %}
