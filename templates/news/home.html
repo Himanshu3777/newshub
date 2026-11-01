@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block content %}
-{% if breaking %}<div class="ticker"><div class="container">{% for b in breaking %}<span class="badge-breaking">BREAKING</span><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{b.slug}}/">{{b.title}}</a> <span class="text-muted">· {{b.source.name}} · {{b.published_at|date:"H:i"}}</span>{% if not forloop.last %} &nbsp;|&nbsp; {% endif %}{% endfor %}</div></div>{% endif %}
+{% if breaking %}<div class="ticker"><div class="container" data-live-ticker>{% for b in breaking %}<span class="badge-breaking">BREAKING</span><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{b.slug}}/">{{b.title}}</a> <span class="text-muted">· {{b.source.name}} · {{b.published_at|date:"H:i"}}</span>{% if not forloop.last %} &nbsp;|&nbsp; {% endif %}{% endfor %}</div></div>{% endif %}
 <div class="container py-4">
 <div class="row g-3">
 <div class="col-lg-8">{% if top_story %}<div class="hero-panel h-100">
@@ -7,16 +7,16 @@
 <span class="cat-label">{{top_story.category.name|default:"Top Story"}}</span>
 <h1 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{top_story.slug}}/">{{top_story.title}}</a></h1>
 {% if top_story.is_unconfirmed %}<span class="source-note">{{top_story.source_note}}</span> {% endif %}
-<span class="text-muted small">{{top_story.source.name}} · {{top_story.published_at|date:"d M Y, H:i"}}</span>
+<span class="text-muted small">{{top_story.source.name}} · {{top_story.published_at|date:"d M Y, H:i"}} · <span data-rel-time="{{top_story.published_at|date:'c'}}"></span></span>
 <span class="float-end"><a href="{{top_story.source_url}}" target="_blank" rel="noopener">Read at publisher →</a></span>
 </div>{% else %}<div class="alert alert-info">No news fetched yet. Admin: run seed + fetch.</div>{% endif %}</div>
-<div class="col-lg-4"><div class="hero-panel h-100"><div class="cat-label mb-2">Trending Now</div>
-{% for t in trending %}<div class="d-flex gap-3 py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="trend-num">{{forloop.counter}}</span><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{t.slug}}/">{{t.title|truncatechars:90}}</a><br><span class="small text-muted">{{t.source.name}} · {{t.published_at|date:"H:i"}}</span></div></div>{% endfor %}
-</div></div></div>
+<div class="col-lg-4"><div class="hero-panel h-100"><div class="cat-label mb-2">Trending Now <span class="live-dot"></span></div><div data-live-trending>
+{% for t in trending %}<div class="d-flex gap-3 py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="trend-num">{{forloop.counter}}</span><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{t.slug}}/">{{t.title|truncatechars:90}}</a><br><span class="small text-muted">{{t.source.name}} · <span data-rel-time="{{t.published_at|date:'c'}}"></span></span></div></div>{% endfor %}
+</div></div></div></div>
 <div class="d-flex justify-content-between align-items-center mt-5"><h2 class="serif">Top stories</h2><a href="/news/">All news →</a></div>
 <div class="row g-3">{% for a in top_stories %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
 <h2 class="serif mt-5">Latest</h2>
-<div class="row g-3">{% for a in latest %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
+<div class="row g-3" data-live-feed data-feed-style="grid" data-latest-id="{{ latest.0.id|default:0 }}">{% for a in latest %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
 <div class="stats-strip mt-5"><div class="row text-center">
 <div class="col-md-3"><div class="num">{{stats.today}}</div><span class="text-muted">Stories today</span></div>
 <div class="col-md-3"><div class="num" style="color:#4ade80">{{stats.publishers}}</div><span class="text-muted">Publishers</span></div>

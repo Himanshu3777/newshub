@@ -9,13 +9,13 @@
 <button class="btn btn-gold w-100">Apply filters</button>
 <a href="/news/" class="btn btn-outline-gold w-100 mt-2">Reset</a>
 </form></div></div>
-<div class="col-lg-9"><h2 class="serif">{{page_obj.paginator.count}} stories</h2>
+<div class="col-lg-9"><h2 class="serif">{{page_obj.paginator.count}} stories</h2><div data-live-feed data-feed-style="row" data-latest-id="{{ page_obj.0.id|default:0 }}">
 {% for a in page_obj %}<div class="card mb-3"><div class="card-body">
 <span class="cat-label">{{a.category.name|default:"News"}}</span>
 <h4 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h4>
 <p class="small text-muted mb-2">{{a.ai_brief|truncatechars:190}}</p>
 {% if a.is_unconfirmed %}<span class="source-note">{{a.source_note}}</span> {% endif %}
-<span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M Y, H:i"}}</span>
+<span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M Y, H:i"}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span>
 </div></div>{% empty %}<p class="text-muted">No stories match. Try different filters.</p>{% endfor %}
-<nav><ul class="pagination">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Previous</a></li>{% endif %}<li class="page-item disabled"><span class="page-link">Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</span></li>{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Next</a></li>{% endif %}</ul></nav>
+</div><nav><ul class="pagination">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Previous</a></li>{% endif %}<li class="page-item disabled"><span class="page-link">Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</span></li>{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Next</a></li>{% endif %}</ul></nav>
 </div></div></div>{% endblock %}

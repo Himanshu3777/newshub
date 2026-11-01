@@ -54,3 +54,8 @@ footer{background:#05080f;border-top:1px solid var(--nh-border)}
 :root[data-theme="light"] .alert-info{background:#e3edff;color:#1d3a66}
 :root[data-theme="light"] .result-unconfirmed{color:#6b4a08}
 :root[data-theme="light"] .source-note-box{color:#6b4a08}
+.live-pill{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:1080;display:none;background:var(--nh-gold,#d4a017);color:#131722;border:none;border-radius:999px;padding:.5rem 1.1rem;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.35);cursor:pointer}
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#c81e1e;margin-right:.35rem;animation:livepulse 1.2s ease-in-out infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes newflash{0%{box-shadow:0 0 0 3px var(--nh-gold,#d4a017)}100%{box-shadow:0 0 0 0 transparent}}
+.new-card-flash{animation:newflash 2.2s ease-out 2}
