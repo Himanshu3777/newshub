@@ -1,0 +1,62 @@
+from django.db import models
+from django.utils.text import slugify
+import hashlib
+
+class NewsCategory(models.Model):
+    name=models.CharField(max_length=60,unique=True); slug=models.SlugField(unique=True)
+    description=models.TextField(blank=True); created_at=models.DateTimeField(auto_now_add=True)
+    class Meta: ordering=["name"]; verbose_name_plural="News categories"
+    def __str__(self): return self.name
+
+class NewsTag(models.Model):
+    name=models.CharField(max_length=80,unique=True); slug=models.SlugField(unique=True)
+    def __str__(self): return self.name
+
+class NewsArticle(models.Model):
+    STATUS=[("verified","Verified"),("partially_verified","Partially Verified"),("disputed","Disputed"),("misleading","Misleading"),("false","False"),("unverified","Unverified"),("needs_review","Needs Human Review")]
+    title=models.CharField(max_length=500)
+    slug=models.SlugField(max_length=520,unique=True)
+    summary=models.TextField(blank=True,help_text="Internal only: feed description used for matching/verification. NOT displayed publicly.")
+    ai_brief=models.TextField(blank=True,help_text="Original brief written by NewsHub from headline + public facts. This is what readers see.")
+    source=models.ForeignKey("sources.NewsSource",on_delete=models.CASCADE,related_name="articles")
+    source_url=models.URLField(max_length=1000,unique=True)
+    author=models.CharField(max_length=200,blank=True)
+    category=models.ForeignKey(NewsCategory,on_delete=models.SET_NULL,null=True,blank=True,related_name="articles")
+    tags=models.ManyToManyField(NewsTag,blank=True,related_name="articles")
+    image_url=models.URLField(max_length=1000,blank=True,help_text="Only when feed permits display")
+    language=models.CharField(max_length=10,default="en")
+    published_at=models.DateTimeField(db_index=True)
+    fetched_at=models.DateTimeField(auto_now_add=True)
+    fingerprint=models.CharField(max_length=64,db_index=True,blank=True)
+    normalized_title=models.CharField(max_length=500,db_index=True,blank=True)
+    is_breaking=models.BooleanField(default=False); is_trending=models.BooleanField(default=False)
+    view_count=models.PositiveIntegerField(default=0)
+    verification_status=models.CharField(max_length=30,choices=STATUS,default="unverified",db_index=True)
+    confidence_score=models.FloatField(default=0.0)
+    has_sensitive_content=models.BooleanField(default=False)
+    origin_type=models.CharField(max_length=20,default="publisher",choices=[("publisher","Publisher"),("social_claim","Social / Viral Claim")])
+    is_unconfirmed=models.BooleanField(default=False,help_text="Claim comes only from a viral/social source and no official source has confirmed it")
+    source_note=models.CharField(max_length=300,blank=True,help_text="Reader-facing note, NewsHub style: where the claim came from + not confirmed")
+    created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering=["-published_at"]
+        indexes=[models.Index(fields=["verification_status","-published_at"]),models.Index(fields=["category","-published_at"])]
+    def save(self,*a,**k):
+        if not self.slug:
+            base=slugify(self.title)[:480] or "news"
+            self.slug=f"{base}-{hashlib.sha256(self.source_url.encode()).hexdigest()[:8]}"
+        if not self.fingerprint:
+            self.fingerprint=hashlib.sha256((self.normalized_title or self.title.lower()).encode()).hexdigest()
+        super().save(*a,**k)
+    @property
+    def is_quarantined(self):
+        """Fake/misleading/disputed stories never reach public feeds - users get actual news only."""
+        return self.verification_status in ("false","misleading","disputed")
+    def __str__(self): return self.title[:80]
+
+class NewsEntity(models.Model):
+    TYPES=[("person","Person"),("org","Organization"),("location","Location"),("date","Date"),("other","Other")]
+    article=models.ForeignKey(NewsArticle,on_delete=models.CASCADE,related_name="entities")
+    name=models.CharField(max_length=200); entity_type=models.CharField(max_length=20,choices=TYPES,default="other")
+    class Meta: unique_together=("article","name","entity_type")
+    def __str__(self): return self.name
