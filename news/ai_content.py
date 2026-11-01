@@ -42,31 +42,68 @@ def local_brief(title, summary_internal, source_name, category_name, published_s
     tail=" NewsHub writes this brief from the headline and public facts only and does not reproduce the publisher's text. Read the complete story at the original publisher, linked below."
     return (opener + " " + " ".join(facts) + mid + tail).strip()
 
+def _brief_prompt(title, facts_text, source_name):
+    return (f"Write an original 2-3 sentence news brief in your own words from this headline and facts only. "
+            f"Do NOT copy or closely paraphrase any article text. Headline: {title}. Facts: {facts_text}. "
+            f"End with: 'Reported by {source_name}.'")
+
+def _clean(txt):
+    if not txt: return None
+    txt=txt.strip()
+    return txt if 40<len(txt)<1200 else None
+
 def gemini_brief(title, facts_text, source_name):
     key=getattr(settings,"GEMINI_API_KEY","")
     if not key: return None
-    prompt=(f"Write an original 2-3 sentence news brief in your own words from this headline and facts only. "
-            f"Do NOT copy or closely paraphrase any article text. Headline: {title}. Facts: {facts_text}. "
-            f"End with: 'Reported by {source_name}.'")
     try:
         r=requests.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-            params={"key":key}, json={"contents":[{"parts":[{"text":prompt}]}]}, timeout=20)
+            params={"key":key}, json={"contents":[{"parts":[{"text":_brief_prompt(title,facts_text,source_name)}]}]}, timeout=20)
         if r.status_code==200:
-            txt=r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-            if 40<len(txt)<1200: return txt
+            return _clean(r.json()["candidates"][0]["content"]["parts"][0]["text"])
     except Exception:
         pass
     return None
 
+def _openai_style_brief(base_url, model, key, title, facts_text, source_name):
+    """Shared caller for OpenAI-compatible chat APIs (Mistral, DeepSeek, Qwen)."""
+    if not key: return None
+    try:
+        r=requests.post(base_url.rstrip("/")+"/chat/completions",
+            headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
+            json={"model":model,"messages":[{"role":"user","content":_brief_prompt(title,facts_text,source_name)}],
+                  "max_tokens":220,"temperature":0.5}, timeout=25)
+        if r.status_code==200:
+            return _clean(r.json()["choices"][0]["message"]["content"])
+    except Exception:
+        pass
+    return None
+
+def mistral_brief(title, facts_text, source_name):
+    return _openai_style_brief("https://api.mistral.ai/v1","mistral-small-latest",
+        getattr(settings,"MISTRAL_API_KEY",""), title, facts_text, source_name)
+
+def deepseek_brief(title, facts_text, source_name):
+    return _openai_style_brief("https://api.deepseek.com/v1","deepseek-chat",
+        getattr(settings,"DEEPSEEK_API_KEY",""), title, facts_text, source_name)
+
+def qwen_brief(title, facts_text, source_name):
+    return _openai_style_brief("https://dashscope-intl.aliyuncs.com/compatible-mode/v1","qwen-plus",
+        getattr(settings,"QWEN_API_KEY",""), title, facts_text, source_name)
+
+# Text provider chain, ordered by free-request headroom (most generous first).
+# If a provider has no key, is rate-limited or fails, the next one is tried.
+# The local composer is the final guarantee: a brief is NEVER left unwritten.
+TEXT_PROVIDERS=[("gemini",gemini_brief),("mistral",mistral_brief),("deepseek",deepseek_brief),("qwen",qwen_brief)]
+
 def generate_brief(article):
     published_str=article.published_at.strftime("%d %B %Y")
     facts_text=f"Entities: {[n for n,_ in extract_entities(article.title+' '+article.summary)]}; Keywords: {extract_keywords(article.title+' '+article.summary,6)}; Figures: {re.findall(r'[0-9][0-9,\.]*', article.title+' '+article.summary)[:5]}"
-    brief=gemini_brief(article.title, facts_text, article.source.name)
-    provider="gemini" if brief else "local"
-    if not brief:
-        brief=local_brief(article.title, article.summary, article.source.name,
-                          article.category.name if article.category else "", published_str, article_seed=article.id or 0)
-    return brief, provider
+    for name,fn in TEXT_PROVIDERS:
+        brief=fn(article.title, facts_text, article.source.name)
+        if brief: return brief, name
+    brief=local_brief(article.title, article.summary, article.source.name,
+                      article.category.name if article.category else "", published_str, article_seed=article.id or 0)
+    return brief, "local"
 
 # ---------- Original cover illustration (SVG, generated per article) ----------
 PALETTES={

@@ -14,12 +14,12 @@ class Command(BaseCommand):
         qs = NewsArticle.objects.filter(cover_jpeg__isnull=True).order_by("-published_at")[: opts["limit"]]
         done = failed = 0
         for art in qs:
-            data = fetch_ai_cover(art)
+            data, _prov = fetch_ai_cover(art)
             if data:
                 art.cover_jpeg = data
                 art.save(update_fields=["cover_jpeg"])
                 done += 1
-                self.stdout.write(f"cover OK   #{art.id} {art.title[:60]}")
+                self.stdout.write(f"cover OK   #{art.id} via {_prov} {art.title[:60]}")
             else:
                 failed += 1
                 self.stdout.write(f"cover FAIL #{art.id} (SVG fallback stays)")

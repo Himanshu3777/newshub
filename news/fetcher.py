@@ -93,7 +93,7 @@ def fetch_source(source: NewsSource):
         for art in new_articles[:cover_limit]:
             try:
                 from news.ai_image import fetch_ai_cover
-                data=fetch_ai_cover(art)
+                data,_prov=fetch_ai_cover(art)
                 if data: art.cover_jpeg=data; art.save(update_fields=["cover_jpeg"])
             except Exception as ce:
                 log.warning("AI cover generation failed for %s: %s", art.id, ce)
