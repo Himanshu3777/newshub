@@ -49,7 +49,7 @@ LANGUAGE_CODE="en-us"; TIME_ZONE="Asia/Kolkata"; USE_I18N=True; USE_TZ=True
 STATIC_URL="static/"; STATICFILES_DIRS=[BASE_DIR/"static"]; STATIC_ROOT=BASE_DIR/"staticfiles"
 STORAGES={"staticfiles":{"BACKEND":"whitenoise.storage.CompressedStaticFilesStorage"}}
 DEFAULT_AUTO_FIELD="django.db.models.BigAutoField"
-REST_FRAMEWORK={"DEFAULT_PAGINATION_CLASS":"rest_framework.pagination.PageNumberPagination","PAGE_SIZE":20,"DEFAULT_FILTER_BACKENDS":["django_filters.rest_framework.DjangoFilterBackend","rest_framework.filters.SearchFilter","rest_framework.filters.OrderingFilter"],"DEFAULT_THROTTLE_CLASSES":["rest_framework.throttling.AnonRateThrottle"],"DEFAULT_THROTTLE_RATES":{"anon":"120/min"}}
+REST_FRAMEWORK={"DEFAULT_PAGINATION_CLASS":"api.pagination.StandardPagination","PAGE_SIZE":20,"DEFAULT_FILTER_BACKENDS":["django_filters.rest_framework.DjangoFilterBackend","rest_framework.filters.SearchFilter","rest_framework.filters.OrderingFilter"],"DEFAULT_THROTTLE_CLASSES":["rest_framework.throttling.AnonRateThrottle"],"DEFAULT_THROTTLE_RATES":{"anon":"120/min"}}
 CELERY_BROKER_URL=os.environ.get("REDIS_URL","redis://localhost:6379/0")
 CELERY_RESULT_BACKEND=CELERY_BROKER_URL
 CELERY_TASK_ALWAYS_EAGER=os.environ.get("CELERY_TASK_ALWAYS_EAGER","True")=="True"

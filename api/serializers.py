@@ -13,7 +13,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     source_name=serializers.CharField(source="source.name",read_only=True)
     category_name=serializers.CharField(source="category.name",read_only=True,default="")
     tags_list=serializers.StringRelatedField(source="tags",many=True,read_only=True)
-    class Meta: model=NewsArticle; fields=["id","title","slug","summary","ai_brief","is_unconfirmed","source_note","source","source_name","source_url","author","category","category_name","tags_list","image_url","language","published_at","verification_status","confidence_score","has_sensitive_content","view_count","is_breaking"]
+    class Meta: model=NewsArticle; fields=["id","title","slug","ai_brief","is_unconfirmed","source_note","source","source_name","source_url","author","category","category_name","tags_list","image_url","language","published_at","verification_status","confidence_score","has_sensitive_content","view_count","is_breaking"]
 class EvidenceSerializer(serializers.ModelSerializer):
     class Meta: model=VerificationEvidence; fields="__all__"
 class ReportSerializer(serializers.ModelSerializer):

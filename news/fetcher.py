@@ -8,7 +8,7 @@ import time
 from sources.models import NewsSource, FetchingLog
 from news.models import NewsArticle, NewsCategory, NewsTag, NewsEntity
 from news.services import normalize_text, normalize_title, detect_language, extract_keywords, extract_entities, classify_category, fingerprint, is_duplicate_candidate, detect_social_origin
-from moderation.services import detect_sensitive
+from moderation.services import detect_sensitive, mask as mask_pii
 from moderation.models import SensitiveContentFinding
 
 log=logging.getLogger(__name__)
@@ -33,13 +33,40 @@ def _image(entry):
         if l.get("type","").startswith("image") and l.get("href"): return l["href"][:1000]
     return ""
 
+def _parse_feed(source, attempts=2):
+    """Fetch+parse the feed with one retry on failure, using HTTP conditional
+    requests (ETag / Last-Modified) so unchanged feeds cost almost nothing.
+    Returns the feedparser result; result.status == 304 means not modified."""
+    last_exc=None
+    for i in range(attempts):
+        try:
+            parsed=feedparser.parse(source.feed_url,
+                                    etag=source.feed_etag or None,
+                                    modified=source.feed_last_modified or None)
+            if getattr(parsed,"status",None)==304:
+                return parsed
+            if getattr(parsed,"bozo",False) and not parsed.entries:
+                raise ValueError(f"Feed parse failed: {getattr(parsed,'bozo_exception','unknown')}")
+            etag=getattr(parsed,"etag",None)
+            if etag: source.feed_etag=str(etag)[:200]
+            mod=getattr(parsed,"modified",None)
+            if mod: source.feed_last_modified=str(mod)[:120]
+            return parsed
+        except Exception as e:
+            last_exc=e
+            if i<attempts-1: time.sleep(2)
+    raise last_exc
+
 def fetch_source(source: NewsSource):
     flog=FetchingLog.objects.create(source=source,status="running")
     fetched=created=dup=0; errors=[]; new_articles=[]
     try:
-        parsed=feedparser.parse(source.feed_url)
-        if getattr(parsed,"bozo",False) and not parsed.entries:
-            raise ValueError(f"Feed parse failed: {getattr(parsed,'bozo_exception','unknown')}")
+        parsed=_parse_feed(source)
+        if getattr(parsed,"status",None)==304:
+            source.last_status="success (not modified)"
+            flog.status="success"; flog.finished_at=timezone.now(); flog.errors="Feed unchanged (HTTP 304)"; flog.save()
+            source.last_fetched_at=timezone.now(); source.save(update_fields=["last_fetched_at","last_status","feed_etag","feed_last_modified"])
+            return {"source":source.name,"fetched":0,"created":0,"duplicates":0,"status":"not_modified","errors":[]}
         recent_titles=list(NewsArticle.objects.filter(source=source).order_by("-published_at").values_list("title",flat=True)[:100])
         for entry in parsed.entries[:30]:
             fetched+=1
@@ -49,12 +76,12 @@ def fetch_source(source: NewsSource):
             if NewsArticle.objects.filter(source_url=url).exists(): dup+=1; continue
             is_dup,match=is_duplicate_candidate(title,recent_titles)
             if is_dup: dup+=1; log.info("Duplicate candidate skipped: %s ~ %s",title,match); continue
-            summary=normalize_text(getattr(entry,"summary","") or getattr(entry,"description",""))[:1200]
+            summary=mask_pii(normalize_text(getattr(entry,"summary","") or getattr(entry,"description",""))[:1200])
             cat_name=classify_category(title,summary)
             category,_=NewsCategory.objects.get_or_create(name=cat_name,defaults={"slug":cat_name.lower().replace(" ","-")})
             article=NewsArticle.objects.create(
                 title=title,summary=summary,source=source,source_url=url,
-                author=normalize_text(getattr(entry,"author",""))[:200],
+                author=mask_pii(normalize_text(getattr(entry,"author",""))[:200]),
                 category=category,image_url=_image(entry),language=detect_language(title+" "+summary),
                 published_at=_parse_date(entry),normalized_title=normalize_title(title),
                 fingerprint=fingerprint(title,url),is_breaking=(cat_name=="Breaking News"))
@@ -102,11 +129,21 @@ def fetch_source(source: NewsSource):
         errors.append(str(e)[:500]); source.last_status=f"failed: {str(e)[:40]}"; log.warning("Fetch failed %s: %s",source.name,e)
     # last_status column is varchar(50) - PostgreSQL enforces it, SQLite did not.
     source.last_status=(source.last_status or "")[:50]
-    source.last_fetched_at=timezone.now(); source.save(update_fields=["last_fetched_at","last_status"])
+    source.last_fetched_at=timezone.now(); source.save(update_fields=["last_fetched_at","last_status","feed_etag","feed_last_modified"])
     flog.finished_at=timezone.now(); flog.fetched=fetched; flog.created=created; flog.duplicates=dup
     flog.errors="\n".join(errors); flog.status="failed" if errors and created==0 else ("partial" if errors else "success")
     flog.save()
     return {"source":source.name,"fetched":fetched,"created":created,"duplicates":dup,"status":flog.status,"errors":errors}
 
 def fetch_all_sources():
-    return [fetch_source(s) for s in NewsSource.objects.filter(is_active=True)]
+    """One fetch run at a time, across cron + fetch_loop + manual commands.
+    If a fresh lock is held, this run is skipped (the holder is fetching);
+    a lock older than 45 minutes is treated as a crashed run and taken over."""
+    from core.locks import acquire_lock, release_lock
+    if not acquire_lock("rss_fetch"):
+        log.warning("Fetch skipped: another fetch run is already in progress")
+        return []
+    try:
+        return [fetch_source(s) for s in NewsSource.objects.filter(is_active=True)]
+    finally:
+        release_lock("rss_fetch")

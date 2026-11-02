@@ -11,6 +11,8 @@ class NewsSource(models.Model):
     is_active=models.BooleanField(default=True)
     fetch_interval_minutes=models.PositiveIntegerField(default=60)
     last_fetched_at=models.DateTimeField(null=True,blank=True)
+    feed_etag=models.CharField(max_length=200,blank=True,default="")
+    feed_last_modified=models.CharField(max_length=120,blank=True,default="")
     last_status=models.CharField(max_length=50,blank=True,default="")
     created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
     class Meta: ordering=["name"]
