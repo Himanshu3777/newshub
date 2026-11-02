@@ -4,8 +4,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env", override=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-change-me-in-production")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
-ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h]
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+_ah = os.environ.get("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [h for h in _ah.split(",") if h] if _ah else (["*"] if DEBUG else ["localhost", "127.0.0.1", ".onrender.com"])
+if not DEBUG and SECRET_KEY == "dev-only-change-me-in-production":
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("SECRET_KEY must be set via environment in production (DEBUG=False).")
 if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 INSTALLED_APPS = [
@@ -35,7 +39,12 @@ if DATABASE_URL.startswith("postgres"):
     import urllib.parse as up
     u = up.urlparse(DATABASE_URL)
     DATABASES = {"default":{"ENGINE":"django.db.backends.postgresql","NAME":u.path[1:],"USER":u.username,"PASSWORD":u.password,"HOST":u.hostname,"PORT":u.port or 5432}}
-AUTH_PASSWORD_VALIDATORS = [{"NAME":"django.contrib.auth.password_validation.MinimumLengthValidator"}]
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME":"django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME":"django.contrib.auth.password_validation.MinimumLengthValidator","OPTIONS":{"min_length":10}},
+    {"NAME":"django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME":"django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 LANGUAGE_CODE="en-us"; TIME_ZONE="Asia/Kolkata"; USE_I18N=True; USE_TZ=True
 STATIC_URL="static/"; STATICFILES_DIRS=[BASE_DIR/"static"]; STATIC_ROOT=BASE_DIR/"staticfiles"
 STORAGES={"staticfiles":{"BACKEND":"whitenoise.storage.CompressedStaticFilesStorage"}}

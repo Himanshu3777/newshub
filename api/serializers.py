@@ -23,8 +23,12 @@ class ReportSerializer(serializers.ModelSerializer):
 class SensitiveSerializer(serializers.ModelSerializer):
     class Meta: model=SensitiveContentFinding; fields="__all__"
 class FeedbackSerializer(serializers.ModelSerializer):
-    class Meta: model=UserFeedback; fields="__all__"
+    # is_resolved is staff-controlled: never writable through the public API
+    # (mass-assignment fix - a submitter must not mark their own feedback resolved).
+    class Meta: model=UserFeedback; fields=["id","name","email","message","created_at","is_resolved"]; read_only_fields=["id","created_at","is_resolved"]
 class CorrectionSerializer(serializers.ModelSerializer):
-    class Meta: model=CorrectionRequest; fields="__all__"
+    # status is a moderation decision (pending/accepted/rejected): read-only for
+    # the public API so nobody can submit a correction pre-marked "accepted".
+    class Meta: model=CorrectionRequest; fields=["id","article","article_url","name","email","description","status","created_at"]; read_only_fields=["id","status","created_at"]
 class FetchLogSerializer(serializers.ModelSerializer):
     class Meta: model=FetchingLog; fields="__all__"
