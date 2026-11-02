@@ -74,6 +74,10 @@ class FetcherAuditTests(TestCase):
         art = NewsArticle.objects.get(source_url="https://example.com/p1")
         self.assertNotIn("9876543210", art.summary)
         self.assertNotIn("9876543210", art.ai_brief)
+        # Regression (whole-text masking bug): the rest of the summary must
+        # survive masking - only the PII token itself is hidden.
+        self.assertIn("Citizens can call", art.summary)
+        self.assertIn("for help", art.summary)
 
     def test_fetch_lock_blocks_second_run(self):
         self.assertTrue(acquire_lock("rss_fetch"))

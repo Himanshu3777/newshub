@@ -96,11 +96,17 @@ def qwen_brief(title, facts_text, source_name):
 # is the router's "local" provider - the final guarantee in every chain.
 def generate_brief(article):
     from airouter.router import generate_text
-    facts_text=f"Entities: {[n for n,_ in extract_entities(article.title+' '+article.summary)]}; Keywords: {extract_keywords(article.title+' '+article.summary,6)}; Figures: {re.findall(r'[0-9][0-9,\.]*', article.title+' '+article.summary)[:5]}"
-    prompt=_brief_prompt(article.title, facts_text, article.source.name)
+    from moderation.services import mask_pii_in_text
+    # Defense in depth: even if an article somehow holds raw PII (manual
+    # admin entry, legacy rows), it must never reach an external AI provider
+    # or the displayed brief. Ingestion already masks; this is the second wall.
+    safe_title=mask_pii_in_text(article.title or "")
+    safe_summary=mask_pii_in_text(article.summary or "")
+    facts_text=f"Entities: {[n for n,_ in extract_entities(safe_title+' '+safe_summary)]}; Keywords: {extract_keywords(safe_title+' '+safe_summary,6)}; Figures: {re.findall(r'[0-9][0-9,\.]*', safe_title+' '+safe_summary)[:5]}"
+    prompt=_brief_prompt(safe_title, facts_text, article.source.name)
     published_str=article.published_at.strftime("%d %B %Y")
     def _local(_prompt):
-        return local_brief(article.title, article.summary, article.source.name,
+        return local_brief(safe_title, safe_summary, article.source.name,
                            article.category.name if article.category else "", published_str,
                            article_seed=article.id or 0), "local-composer"
     res=generate_text(prompt, request_class="normal", local_fn=_local)

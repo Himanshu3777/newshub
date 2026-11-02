@@ -8,7 +8,7 @@ import time
 from sources.models import NewsSource, FetchingLog
 from news.models import NewsArticle, NewsCategory, NewsTag, NewsEntity
 from news.services import normalize_text, normalize_title, detect_language, extract_keywords, extract_entities, classify_category, fingerprint, is_duplicate_candidate, detect_social_origin
-from moderation.services import detect_sensitive, mask as mask_pii
+from moderation.services import detect_sensitive, mask_pii_in_text
 from moderation.models import SensitiveContentFinding
 
 log=logging.getLogger(__name__)
@@ -76,12 +76,12 @@ def fetch_source(source: NewsSource):
             if NewsArticle.objects.filter(source_url=url).exists(): dup+=1; continue
             is_dup,match=is_duplicate_candidate(title,recent_titles)
             if is_dup: dup+=1; log.info("Duplicate candidate skipped: %s ~ %s",title,match); continue
-            summary=mask_pii(normalize_text(getattr(entry,"summary","") or getattr(entry,"description",""))[:1200])
+            summary=mask_pii_in_text(normalize_text(getattr(entry,"summary","") or getattr(entry,"description",""))[:1200])
             cat_name=classify_category(title,summary)
             category,_=NewsCategory.objects.get_or_create(name=cat_name,defaults={"slug":cat_name.lower().replace(" ","-")})
             article=NewsArticle.objects.create(
                 title=title,summary=summary,source=source,source_url=url,
-                author=mask_pii(normalize_text(getattr(entry,"author",""))[:200]),
+                author=mask_pii_in_text(normalize_text(getattr(entry,"author",""))[:200]),
                 category=category,image_url=_image(entry),language=detect_language(title+" "+summary),
                 published_at=_parse_date(entry),normalized_title=normalize_title(title),
                 fingerprint=fingerprint(title,url),is_breaking=(cat_name=="Breaking News"))

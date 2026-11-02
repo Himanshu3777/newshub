@@ -42,7 +42,7 @@ python manage.py validate_data --strict    # read-only data-integrity check
 ```bash
 python manage.py test
 ```
-85 tests: unit (ingestion, dedup, PII, verification, quarantine, AI router, database),
+140 tests: unit (ingestion, dedup, PII, verification, quarantine, AI router, database, fetcher/verification/router edge cases),
 integration journeys (RSS→brief→verify→cover→pages→API) and hostile-input
 security probes (SQLi, XSS, CSRF, auth, rate-limit flood). Coverage ≈ 80%.
 

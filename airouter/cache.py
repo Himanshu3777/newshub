@@ -1,6 +1,9 @@
 """Hash-based result cache (spec 9). Same prompt+kind+params -> same key ->
 cached result, zero provider quota consumed."""
 import hashlib, json
+from datetime import timedelta
+from django.conf import settings
+from django.utils import timezone
 from airouter.models import AICache
 
 def make_key(kind, prompt, params=None):
@@ -8,7 +11,13 @@ def make_key(kind, prompt, params=None):
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 def get(kind, prompt, params=None):
-    return AICache.objects.filter(kind=kind, cache_key=make_key(kind, prompt, params)).first()
+    row = AICache.objects.filter(kind=kind, cache_key=make_key(kind, prompt, params)).first()
+    if row is None:
+        return None
+    ttl_h = getattr(settings, "AI_CACHE_TTL_HOURS", {}).get(kind, 24)
+    if ttl_h and ttl_h > 0 and row.created_at < timezone.now() - timedelta(hours=ttl_h):
+        return None  # expired: caller regenerates and refreshes the row
+    return row
 
 def put(kind, prompt, provider, model, params=None, text="", image=None):
     obj, _ = AICache.objects.update_or_create(

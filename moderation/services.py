@@ -14,6 +14,15 @@ KEYWORDS=[
 def mask(text):
     if len(text)<=4: return "****"
     return text[:2]+"*"*(len(text)-4)+text[-2:]
+def mask_pii_in_text(text):
+    """Mask every PII occurrence INSIDE a longer text, leaving the rest of
+    the text intact. (mask() alone is for a single matched token - applying
+    it to a whole document would destroy the document.)"""
+    t=text or ""
+    for _name,pat,_sev in PATTERNS:
+        t=pat.sub(lambda m: mask(m.group(0)), t)
+    return t
+
 def detect_sensitive(text):
     findings=[]; t=text or ""
     for name,pat,sev in PATTERNS:
