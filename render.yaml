@@ -2,6 +2,7 @@ services:
   - type: web
     name: newsverify-ai
     env: python
+    plan: free
     buildCommand: ./build.sh
     healthCheckPath: /health/
     startCommand: gunicorn newsverify.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4
@@ -17,6 +18,12 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: GOOGLE_FACTCHECK_API_KEY
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
   - type: cron
     name: newshub-fetch
