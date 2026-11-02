@@ -35,6 +35,16 @@
   POST rate limiting. (Dedicated lockout tooling like django-axes is not
   installed — see KNOWN_LIMITATIONS.md.)
 
+## Response headers (verified live in production mode)
+HSTS (1 year, preload), X-Content-Type-Options: nosniff, X-Frame-Options: DENY,
+Referrer-Policy: same-origin, Cross-Origin-Opener-Policy: same-origin, secure
+cookies, HTTP→HTTPS redirect — all confirmed on a real HTTPS response.
+A Content-Security-Policy header is not set yet: the templates rely on inline
+styles, so a strict CSP needs a template refactor first (tracked in
+KNOWN_LIMITATIONS.md).
+
 ## Audit history
 - 2026-11-02: full security review — 1 bug found (mass-assignment) and fixed;
+  hostile-input probe tests added (SQLi, XSS, CSRF, auth, rate-limit flood) — all pass;
+  dependency audit (pip-audit): no known vulnerabilities;
   `manage.py check --deploy` in production mode: 0 issues; dependency check clean.

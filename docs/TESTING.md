@@ -2,7 +2,7 @@
 
 ## Run everything
 ```bash
-python manage.py test            # full suite (63 tests)
+python manage.py test            # full suite (75 tests)
 python manage.py check           # Django system checks
 SECRET_KEY=<long-random> DEBUG=False ALLOWED_HOSTS=.onrender.com,localhost python manage.py check --deploy
 ```
@@ -20,6 +20,8 @@ SECRET_KEY=<long-random> DEBUG=False ALLOWED_HOSTS=.onrender.com,localhost pytho
 | Zero-billing: paid blocked, OpenRouter `:free` only, paid never called on total failure | `airouter/tests.py` |
 | API security: mass-assignment, sensitive admin-only, summary not exposed, pagination cap | `api/test_security.py`, `news/test_audit.py` |
 | Pages: home, health, detail, custom 404 | `news/tests.py`, `news/test_audit.py` |
+| Integration journeys: RSS→brief→verify→cover→pages→API, claim, correction, staff | `news/test_integration.py` |
+| Security probes: SQLi, XSS escaping, CSRF, admin auth, rate-limit flood | `news/test_security_probes.py` |
 | Data validation command | `news/test_audit.py` |
 
 ## Rules

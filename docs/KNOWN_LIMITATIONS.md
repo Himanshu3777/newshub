@@ -30,7 +30,9 @@
 10. **Fetch lock is database-backed** and correct across processes/machines
     sharing the DB; the in-process cache used for rate limiting is per-process
     on multi-worker deployments, so limits are approximate under heavy scale.
-11. **Hosting/deployment is intentionally out of scope** for the current
+11. **No Content-Security-Policy header yet** — templates use inline styles;
+    adding a strict CSP requires refactoring those to classes first.
+12. **Hosting/deployment is intentionally out of scope** for the current
     phase: the code is Render-ready (`render.yaml`, cron fetch service) but
     not yet deployed; production needs a cloud PostgreSQL (Neon) because a
     local pgAdmin database cannot be reached from the internet.
