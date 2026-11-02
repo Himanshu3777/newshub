@@ -43,3 +43,36 @@ Classify → cache → rank free providers (access level + configured capacity +
 remaining quota + health) → zero-billing guard → quota/health check → single
 attempt per provider → log → cache. Local Composer (text) and SVG (image)
 close every chain. See `docs/FREE_API_ECOSYSTEM.md`.
+
+## Verification search providers (pluggable)
+Evidence gathering goes through `verification/providers.py`: a
+`SearchProvider` registry driven by `settings.SEARCH_PROVIDERS`. The default
+provider is the **Google Fact Check Tools API** (`FactCheckProvider`) — an
+evidence finder that returns already-published fact-checks, never a truth
+engine. **Google CSE** (`GoogleCSEProvider`) is a legacy/optional provider:
+closed to new customers, discontinued 2027-01-01, enabled only when
+`SEARCH_GOOGLE_CSE_ENABLED=True` *and* both CSE keys are set; its results are
+stored as neutral evidence and carry no rating. Adding a future provider =
+one new class + one name in `SEARCH_PROVIDERS`; nothing else in the engine
+changes. Each report's summary records which providers ran and their
+statuses (`[Providers: factcheck=ok, ...]`).
+
+## Multi-signal verification rule
+A final status always combines multiple evidence signals
+(`verification.services.score_verification`):
+- Fact-check rating false/incorrect/misleading → **False** / **Misleading**.
+- Fact-check rating true/correct → **Verified** only when ≥1 independent
+  publisher in our collection also covers the story; a lone true fact-check
+  → **Partially Verified** (70).
+- No fact-check: ≥2 cross-publisher matches → Partially Verified (55);
+  exactly 1 → Unverified (30); none → Needs Human Review (15).
+Repetition alone never verifies.
+
+## Licensing gate (availability ≠ permission)
+A source's technical health (`last_status`, ETag/Last-Modified) is tracked
+separately from its legal right to be shown publicly (`license_status`:
+`unknown` / `permitted` / `restricted`, plus `license_notes` and
+`terms_url`). Public pages (`news.views.public_qs`, article detail) and the
+public API (article list/search; detail returns 404) only expose articles
+from `permitted` sources. New/seeded sources start at `unknown` — hidden —
+until an admin checks the publisher's terms and marks them in Django admin.

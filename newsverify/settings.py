@@ -117,6 +117,15 @@ AUTO_VERIFY_PER_SOURCE=int(os.environ.get("AUTO_VERIFY_PER_SOURCE","8"))
 AUTO_COVERS_PER_SOURCE=int(os.environ.get("AUTO_COVERS_PER_SOURCE","3"))
 GOOGLE_CSE_API_KEY=os.environ.get("GOOGLE_CSE_API_KEY","")
 GOOGLE_CSE_ID=os.environ.get("GOOGLE_CSE_ID","")
+# ---- Verification search providers (pluggable) ----
+# Verification gathers evidence through a pluggable SearchProvider layer
+# (verification/providers.py). The Google Fact Check Tools API is the default
+# provider. Google CSE is a LEGACY, optional provider only: it is closed to
+# new customers and is discontinued on 2027-01-01, so it must NEVER become a
+# hard dependency. It runs only when listed in SEARCH_PROVIDERS *and*
+# SEARCH_GOOGLE_CSE_ENABLED is True *and* both CSE keys are set.
+SEARCH_PROVIDERS=[p.strip() for p in os.environ.get("SEARCH_PROVIDERS","factcheck").split(",") if p.strip()]
+SEARCH_GOOGLE_CSE_ENABLED=os.environ.get("SEARCH_GOOGLE_CSE_ENABLED","False")=="True"
 SECURE_REFERRER_POLICY="same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY="same-origin"
 if not DEBUG:

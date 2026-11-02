@@ -14,8 +14,17 @@ class NewsSource(models.Model):
     feed_etag=models.CharField(max_length=200,blank=True,default="")
     feed_last_modified=models.CharField(max_length=120,blank=True,default="")
     last_status=models.CharField(max_length=50,blank=True,default="")
+    # Licensing is SEPARATE from technical feed status (last_status): a feed
+    # can fetch fine yet not be legally usable for public display. Public
+    # pages/API only show articles from sources marked "permitted".
+    LICENSE_STATUS=[("unknown","Unknown — terms not yet checked"),("permitted","Permitted for public display"),("restricted","Restricted — do not display publicly")]
+    license_status=models.CharField(max_length=20,choices=LICENSE_STATUS,default="unknown")
+    license_notes=models.TextField(blank=True,default="")
+    terms_url=models.URLField(blank=True,default="")
     created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
     class Meta: ordering=["name"]
+    @property
+    def is_publicly_displayable(self): return self.license_status=="permitted"
     def __str__(self): return self.name
 
 class FetchingLog(models.Model):

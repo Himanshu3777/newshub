@@ -5,12 +5,14 @@ claims are flagged so the user gets the actual picture."""
 import re
 from news.models import NewsArticle
 from news.services import title_similarity, extract_keywords
-from verification.services import google_factcheck
+from verification.providers import FactCheckProvider
 from verification.models import ClaimSubmission
 
 def check_claim(text, platform="other", url=""):
     sub=ClaimSubmission.objects.create(platform=platform, claim_text=text[:2000], source_url=url or "")
-    factchecks, api_status = google_factcheck(text[:200])
+    # Evidence comes via the pluggable FactCheckProvider (never a direct API call).
+    items, api_status = FactCheckProvider().search(text[:200])
+    factchecks=[{"rating": i.rating, "publisher": i.publisher, "title": i.title, "url": i.url} for i in items]
     for fc in factchecks:
         rating=(fc.get("rating") or "").lower()
         if any(w in rating for w in ["false","incorrect","misleading","fake"]):

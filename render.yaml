@@ -3,9 +3,12 @@ services:
     name: newsverify-ai
     env: python
     buildCommand: ./build.sh
+    healthCheckPath: /health/
     startCommand: gunicorn newsverify.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4
     envVars:
       - key: DEBUG
+        value: "False"
+      - key: SEARCH_GOOGLE_CSE_ENABLED
         value: "False"
       - key: CELERY_TASK_ALWAYS_EAGER
         value: "True"

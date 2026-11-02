@@ -11,7 +11,10 @@ from feedback_app.models import UserFeedback, CorrectionRequest
 from api.serializers import *
 
 class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset=NewsArticle.objects.exclude(verification_status__in=["false","misleading","disputed"]).select_related("source","category").prefetch_related("tags")
+    # Public API: quarantined stories excluded, and only sources licensed
+    # "permitted" are listed - the same queryset backs retrieve(), so an
+    # article from a non-permitted source returns 404 on detail.
+    queryset=NewsArticle.objects.exclude(verification_status__in=["false","misleading","disputed"]).filter(source__license_status="permitted").select_related("source","category").prefetch_related("tags")
     serializer_class=ArticleSerializer; filter_backends=[DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
     filterset_fields={"category__slug":["exact"],"source__slug":["exact"],"verification_status":["exact"],"language":["exact"],"published_at":["gte","lte"]}
     search_fields=["title","summary"]; ordering_fields=["published_at","view_count"]; ordering=["-published_at"]
@@ -50,7 +53,7 @@ def stats(request):
 @api_view(["GET"])
 def search_api(request):
     q=request.GET.get("q","").strip()
-    qs=NewsArticle.objects.filter(Q(title__icontains=q)|Q(summary__icontains=q)).select_related("source","category")[:50] if q else NewsArticle.objects.none()
+    qs=NewsArticle.objects.filter(Q(title__icontains=q)|Q(summary__icontains=q)).filter(source__license_status="permitted").select_related("source","category")[:50] if q else NewsArticle.objects.none()
     return Response(ArticleSerializer(qs,many=True).data)
 @api_view(["POST"])
 @permission_classes([permissions.IsAdminUser])

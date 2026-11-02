@@ -32,7 +32,7 @@ class VerificationTests(TestCase):
 
 class ApiTests(TestCase):
     def setUp(self):
-        self.src=NewsSource.objects.create(name="Test News",slug="test-news",website="https://example.com",feed_url="https://example.com/rss")
+        self.src=NewsSource.objects.create(name="Test News",slug="test-news",license_status="permitted",website="https://example.com",feed_url="https://example.com/rss")
         cat=NewsCategory.objects.create(name="National",slug="national")
         self.art=NewsArticle.objects.create(title="Test headline for India",summary="summary",source=self.src,source_url="https://example.com/1",category=cat,published_at=timezone.now())
     def test_home(self): self.assertEqual(Client().get("/").status_code,200)
@@ -48,7 +48,7 @@ class ApiTests(TestCase):
 
 class NewsHubHandlingTests(TestCase):
     def setUp(self):
-        self.src=NewsSource.objects.create(name="Hub Test",slug="hub-test",website="https://example.com",feed_url="https://example.com/rss")
+        self.src=NewsSource.objects.create(name="Hub Test",slug="hub-test",license_status="permitted",website="https://example.com",feed_url="https://example.com/rss")
         self.cat=NewsCategory.objects.create(name="National",slug="national-hub")
     def _art(self,title,status="unverified",**kw):
         return NewsArticle.objects.create(title=title,summary=kw.pop("summary","s"),source=self.src,source_url=f"https://example.com/{abs(hash(title))%99999}",category=self.cat,published_at=timezone.now(),verification_status=status,**kw)
@@ -89,7 +89,7 @@ class NewsHubHandlingTests(TestCase):
 
 class AIContentAndThemeTests(TestCase):
     def setUp(self):
-        self.src=NewsSource.objects.create(name="AI Test",slug="ai-test",website="https://example.com",feed_url="https://example.com/rss")
+        self.src=NewsSource.objects.create(name="AI Test",slug="ai-test",license_status="permitted",website="https://example.com",feed_url="https://example.com/rss")
         self.cat=NewsCategory.objects.create(name="Technology",slug="technology-ai")
         self.art=NewsArticle.objects.create(title="ISRO launches new satellite mission for farmers",summary="Internal feed text that must not be displayed publicly on the site.",source=self.src,source_url="https://example.com/ai1",category=self.cat,published_at=timezone.now())
     def test_brief_is_original(self):

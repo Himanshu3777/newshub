@@ -15,7 +15,7 @@ PUBLIC_FIELDS = {"id", "title", "slug", "ai_brief", "is_unconfirmed", "source_no
 
 class ApiEdgeTests(TestCase):
     def setUp(self):
-        self.src = NewsSource.objects.create(name="ApiWire", slug="apiwire",
+        self.src = NewsSource.objects.create(name="ApiWire", slug="apiwire", license_status="permitted",
                                              website="https://e.com", feed_url="https://e.com/f")
         self.cat = NewsCategory.objects.create(name="Sports", slug="sports-edge")
         self.a1 = NewsArticle.objects.create(title="Edge API Story One", source=self.src,

@@ -22,10 +22,19 @@ SOURCES=[
  ("The Guardian","https://www.theguardian.com","https://www.theguardian.com/world/rss","en",88),
 ]
 CATS=["Breaking News","Politics","Technology","Business","Education","Sports","Entertainment","Science","Health","International","National","Crime","Environment"]
+# Licensing notes from the 2026-11-01 feed checks. NOTE: license_status stays
+# "unknown" for every source - a working feed does NOT mean public/commercial
+# display is permitted. An admin marks a source "permitted" in Django admin
+# only after checking that publisher's terms.
+LICENSE_NOTES={
+ "BBC News": "Official RSS verified live 2026-11-01. Public/commercial display terms not yet confirmed — check BBC RSS terms before marking permitted.",
+ "Hindustan Times": "Official RSS index live 2026-11-01. Display terms not yet confirmed — check before marking permitted.",
+ "NDTV": "RSS live 2026-11-01, but NDTV terms state personal, non-commercial use with attribution; public/commercial display is NOT covered — keep unlisted publicly until written permission or terms change.",
+}
 class Command(BaseCommand):
     help="Seed 8 publishers + 13 categories (idempotent)"
     def handle(self,*a,**o):
         for name in CATS: NewsCategory.objects.get_or_create(name=name,defaults={"slug":slugify(name)})
         for name,site,feed,lang,cred in SOURCES:
-            NewsSource.objects.update_or_create(name=name,defaults={"slug":slugify(name),"website":site,"feed_url":feed,"language":lang,"credibility_score":cred,"is_active":True})
+            NewsSource.objects.update_or_create(name=name,defaults={"slug":slugify(name),"website":site,"feed_url":feed,"language":lang,"credibility_score":cred,"is_active":True,"license_notes":LICENSE_NOTES.get(name,"")})
         self.stdout.write(self.style.SUCCESS(f"Seeded {len(SOURCES)} sources, {len(CATS)} categories"))

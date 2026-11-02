@@ -94,7 +94,7 @@ class FetcherAuditTests(TestCase):
 
 class ApiAuditTests(TestCase):
     def setUp(self):
-        src = NewsSource.objects.create(name="ApiWire", slug="apiwire",
+        src = NewsSource.objects.create(name="ApiWire", slug="apiwire", license_status="permitted",
                                         website="https://example.com", feed_url="https://example.com/f")
         from news.models import NewsCategory
         cat = NewsCategory.objects.create(name="India", slug="india")

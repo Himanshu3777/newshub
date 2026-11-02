@@ -6,8 +6,10 @@ from sources.models import NewsSource
 
 QUARANTINE=["false","misleading","disputed"]
 def public_qs():
-    """Public feeds never include fake/misleading/disputed stories."""
-    return NewsArticle.objects.exclude(verification_status__in=QUARANTINE)
+    """Public feeds never include fake/misleading/disputed stories, and only
+    show sources whose license_status is "permitted" - a technically working
+    feed is not by itself legal permission for public display."""
+    return NewsArticle.objects.exclude(verification_status__in=QUARANTINE).filter(source__license_status="permitted")
 def article_list(request):
     qs=public_qs().select_related("source","category").all()
     if request.GET.get("unconfirmed"): qs=qs.filter(is_unconfirmed=True)
@@ -39,7 +41,9 @@ def listing(request):
 
 def detail(request,slug):
     art=get_object_or_404(NewsArticle.objects.select_related("source","category"),slug=slug)
-    if art.is_quarantined and not request.user.is_staff:
+    if (art.is_quarantined or not art.source.is_publicly_displayable) and not request.user.is_staff:
+        # Same direct-link handling as quarantined stories: a warning page,
+        # never the story itself, for non-staff visitors.
         return render(request,"news/quarantined.html",{"article":art,"reports":art.verification_reports.prefetch_related("evidence").all()})
     NewsArticle.objects.filter(id=art.id).update(view_count=F("view_count")+1)
     reports=art.verification_reports.prefetch_related("evidence").all()

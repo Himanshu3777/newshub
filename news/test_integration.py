@@ -26,7 +26,7 @@ def feed_of(entries):
 class FullPipelineJourney(TestCase):
     """RSS -> article -> AI brief -> auto-verify -> cover -> pages -> API."""
     def setUp(self):
-        self.src = NewsSource.objects.create(name="JourneyWire", slug="journeywire",
+        self.src = NewsSource.objects.create(name="JourneyWire", slug="journeywire", license_status="permitted",
                                              website="https://example.com",
                                              feed_url="https://example.com/feed.xml")
         feed = feed_of([entry("ISRO Announces New Lunar Mission For 2027",

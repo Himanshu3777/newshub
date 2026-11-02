@@ -1,7 +1,15 @@
 """Phase 9: Verification engine.
 Google Fact Check Tools API is evidence, not proof. Without a key, claims stay
-Unverified / Needs Human Review. Verified requires >=2 independent publishers
-supporting + a fact-check or no contradiction - repetition alone never verifies.
+Unverified / Needs Human Review. Repetition alone never verifies.
+
+MULTI-SIGNAL RULE (binding): a final status always combines multiple evidence
+signals - a published fact-check is only ONE signal, never a truth engine.
+- Fact-check says false/incorrect/misleading -> False / Misleading.
+- Fact-check says true/correct -> Verified ONLY when at least one independent
+  publisher in our own collection also covers the story (related_count >= 1).
+  A lone true fact-check with no corroboration -> Partially Verified.
+- No fact-check -> cross-publisher coverage alone can at most partially
+  verify; a single source stays Unverified; no evidence -> Needs Human Review.
 """
 import re, requests
 from django.conf import settings
@@ -35,7 +43,12 @@ def score_verification(article, factchecks, related_count=0):
         if any(w in ratings for w in ["false","incorrect","misleading"]):
             return "false" if "false" in ratings else "misleading", 85.0, f"Existing fact-check found with rating: {factchecks[0].get('rating')}"
         if any(w in ratings for w in ["true","correct"]):
-            return "verified", 90.0, "Existing fact-check rates this claim true/correct."
+            # Multi-signal rule: a published fact-check rating true is one
+            # signal only. "Verified" additionally needs independent publisher
+            # corroboration inside our own collection (related_count >= 1).
+            if related_count>=1:
+                return "verified", 90.0, "Existing fact-check rates this claim true/correct."
+            return "partially_verified", 70.0, "A published fact-check rates this claim true/correct, but independent corroboration is not yet in our collection. Multi-signal rule: one signal alone does not fully verify."
     if related_count>=2:
         return "partially_verified", 55.0, f"Covered by {related_count} articles in our collection from different publishers. Cross-publisher coverage supports but does not prove the claim - no independent fact-check found."
     if related_count==1:
