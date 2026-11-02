@@ -32,7 +32,12 @@
     on multi-worker deployments, so limits are approximate under heavy scale.
 11. **No Content-Security-Policy header yet** — templates use inline styles;
     adding a strict CSP requires refactoring those to classes first.
-12. **Hosting/deployment is intentionally out of scope** for the current
+12. **Fetch cycle speed depends on free-provider latency.** Briefs and covers
+    are generated during ingestion; a slow free image provider can stretch a
+    full 17-source cycle. Mitigations in place: bounded batches (8 verifies,
+    3 covers per source), provider timeouts capped at 30-45s, cooldown after
+    repeated failures, and HTTP conditional fetching.
+13. **Hosting/deployment is intentionally out of scope** for the current
     phase: the code is Render-ready (`render.yaml`, cron fetch service) but
     not yet deployed; production needs a cloud PostgreSQL (Neon) because a
     local pgAdmin database cannot be reached from the internet.

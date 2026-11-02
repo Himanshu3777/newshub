@@ -15,7 +15,7 @@ def pollinations(prompt, seed=7):
     url = ("https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) +
            "?width=1200&height=630&nologo=true&model=flux&seed=" + str(seed))
     try:
-        r = requests.get(url, timeout=75, headers={"User-Agent": "NewsHub-AIRouter/1.0"})
+        r = requests.get(url, timeout=30, headers={"User-Agent": "NewsHub-AIRouter/1.0"})
         if r.status_code == 429: return _fail("flux", "429 rate limited")
         if r.status_code == 200 and _valid_jpeg(r.content): return _ok(r.content, "flux")
         return _fail("flux", f"http {r.status_code} bytes {len(r.content or b'')}")
@@ -29,7 +29,7 @@ def gemini_image(prompt, seed=7):
         r = requests.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent",
                           params={"key": key},
                           json={"contents": [{"parts": [{"text": prompt}]}],
-                                "generationConfig": {"responseModalities": ["IMAGE"]}}, timeout=90)
+                                "generationConfig": {"responseModalities": ["IMAGE"]}}, timeout=45)
         if r.status_code == 429: return _fail("gemini-image", "429 rate limited")
         if r.status_code != 200: return _fail("gemini-image", f"http {r.status_code}")
         for p in r.json()["candidates"][0]["content"]["parts"]:
@@ -47,7 +47,7 @@ def huggingface(prompt, seed=7):
     try:
         r = requests.post("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
                           headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                          json={"inputs": prompt}, timeout=90)
+                          json={"inputs": prompt}, timeout=45)
         if r.status_code == 429: return _fail("FLUX.1-schnell", "429 rate limited")
         if r.status_code == 200 and _valid_jpeg(r.content): return _ok(r.content, "FLUX.1-schnell")
         return _fail("FLUX.1-schnell", f"http {r.status_code}")

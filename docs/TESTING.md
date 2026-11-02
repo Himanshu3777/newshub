@@ -2,7 +2,7 @@
 
 ## Run everything
 ```bash
-python manage.py test            # full suite (75 tests)
+python manage.py test            # full suite (85 tests)
 python manage.py check           # Django system checks
 SECRET_KEY=<long-random> DEBUG=False ALLOWED_HOSTS=.onrender.com,localhost python manage.py check --deploy
 ```
@@ -22,6 +22,8 @@ SECRET_KEY=<long-random> DEBUG=False ALLOWED_HOSTS=.onrender.com,localhost pytho
 | Pages: home, health, detail, custom 404 | `news/tests.py`, `news/test_audit.py` |
 | Integration journeys: RSS→brief→verify→cover→pages→API, claim, correction, staff | `news/test_integration.py` |
 | Security probes: SQLi, XSS escaping, CSRF, admin auth, rate-limit flood | `news/test_security_probes.py` |
+| Database unit: unique constraints, cascades, defaults, lock uniqueness, rollback | `news/test_database.py` |
+| Database integration: backup -> wipe -> restore roundtrip, validate command | `news/test_database.py` |
 | Data validation command | `news/test_audit.py` |
 
 ## Rules

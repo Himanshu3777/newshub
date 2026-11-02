@@ -38,7 +38,15 @@ DATABASE_URL = os.environ.get("DATABASE_URL","")
 if DATABASE_URL.startswith("postgres"):
     import urllib.parse as up
     u = up.urlparse(DATABASE_URL)
-    DATABASES = {"default":{"ENGINE":"django.db.backends.postgresql","NAME":u.path[1:],"USER":u.username,"PASSWORD":u.password,"HOST":u.hostname,"PORT":u.port or 5432}}
+    _q = dict(up.parse_qsl(u.query))
+    _opts = {}
+    # Cloud PostgreSQL (Neon/Render) requires TLS. Honour ?sslmode= in the URL;
+    # if it is absent, require SSL for every non-local host so credentials and
+    # data never travel unencrypted.
+    _sslmode = _q.get("sslmode") or ("require" if u.hostname not in ("localhost", "127.0.0.1") else None)
+    if _sslmode: _opts["sslmode"] = _sslmode
+    if _q.get("channel_binding"): _opts["channel_binding"] = _q["channel_binding"]
+    DATABASES = {"default":{"ENGINE":"django.db.backends.postgresql","NAME":u.path[1:],"USER":u.username,"PASSWORD":u.password,"HOST":u.hostname,"PORT":u.port or 5432,"CONN_MAX_AGE":60,"OPTIONS":_opts}}
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME":"django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME":"django.contrib.auth.password_validation.MinimumLengthValidator","OPTIONS":{"min_length":10}},

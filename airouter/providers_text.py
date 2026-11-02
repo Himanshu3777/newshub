@@ -53,7 +53,7 @@ def deepseek(prompt):
 def pollinations_text(prompt):
     try:
         url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
-        r = requests.get(url, timeout=40, headers={"User-Agent": "NewsHub-AIRouter/1.0"})
+        r = requests.get(url, timeout=30, headers={"User-Agent": "NewsHub-AIRouter/1.0"})
         if r.status_code == 429: return _fail("pollinations-text", "429 rate limited")
         if r.status_code != 200: return _fail("pollinations-text", f"http {r.status_code}")
         txt = (r.text or "").strip()
