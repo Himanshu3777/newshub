@@ -60,6 +60,27 @@ def search_api(request):
 def run_fetch(request):
     from news.fetcher import fetch_all_sources
     return Response(fetch_all_sources())
+
+def trigger_fetch_async():
+    """Run a full scan in a background thread (used by the scheduler trigger)."""
+    import threading
+    from news.fetcher import fetch_all_sources
+    threading.Thread(target=fetch_all_sources,daemon=True).start()
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def fetch_trigger(request):
+    """Pinged by an external free scheduler (e.g. cron-job.org) to start a
+    news scan. Protected by the FETCH_TRIGGER_TOKEN env var; when the token
+    is not configured the endpoint is disabled (404). Overlapping scans are
+    already prevented by the rss_fetch lock inside fetch_all_sources."""
+    import hmac
+    from django.conf import settings
+    token=getattr(settings,"FETCH_TRIGGER_TOKEN","")
+    if not token: return Response({"detail":"trigger disabled"},status=404)
+    if not hmac.compare_digest(request.GET.get("token",""),token): return Response({"detail":"forbidden"},status=403)
+    trigger_fetch_async()
+    return Response({"status":"fetch triggered"},status=202)
 @api_view(["POST"])
 @permission_classes([permissions.IsAdminUser])
 def run_verify(request,article_id):

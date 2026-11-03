@@ -61,6 +61,10 @@ REST_FRAMEWORK={"DEFAULT_PAGINATION_CLASS":"api.pagination.StandardPagination","
 CELERY_BROKER_URL=os.environ.get("REDIS_URL","redis://localhost:6379/0")
 CELERY_RESULT_BACKEND=CELERY_BROKER_URL
 CELERY_TASK_ALWAYS_EAGER=os.environ.get("CELERY_TASK_ALWAYS_EAGER","True")=="True"
+# Token for the external free-scheduler fetch trigger (/api/fetch/trigger/).
+# Empty = trigger disabled. Set the same value in Render env and in the
+# scheduler's URL; never commit a real value.
+FETCH_TRIGGER_TOKEN=os.environ.get("FETCH_TRIGGER_TOKEN","")
 GOOGLE_FACTCHECK_API_KEY=os.environ.get("GOOGLE_FACTCHECK_API_KEY","")
 GEMINI_API_KEY=os.environ.get("GEMINI_API_KEY","")
 MISTRAL_API_KEY=os.environ.get("MISTRAL_API_KEY","")

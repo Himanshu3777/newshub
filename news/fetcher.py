@@ -135,15 +135,24 @@ def fetch_source(source: NewsSource):
     flog.save()
     return {"source":source.name,"fetched":fetched,"created":created,"duplicates":dup,"status":flog.status,"errors":errors}
 
-def fetch_all_sources():
+def fetch_all_sources(max_workers=6):
     """One fetch run at a time, across cron + fetch_loop + manual commands.
     If a fresh lock is held, this run is skipped (the holder is fetching);
-    a lock older than 45 minutes is treated as a crashed run and taken over."""
+    a lock older than 45 minutes is treated as a crashed run and taken over.
+    Sources are fetched in parallel (bounded pool) so one slow feed cannot
+    hold up the whole scan; per-source errors stay inside fetch_source."""
     from core.locks import acquire_lock, release_lock
     if not acquire_lock("rss_fetch"):
         log.warning("Fetch skipped: another fetch run is already in progress")
         return []
     try:
-        return [fetch_source(s) for s in NewsSource.objects.filter(is_active=True)]
+        from concurrent.futures import ThreadPoolExecutor
+        from django.db import close_old_connections
+        def _run(source):
+            try: return fetch_source(source)
+            finally: close_old_connections()
+        sources=list(NewsSource.objects.filter(is_active=True))
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            return list(pool.map(_run, sources))
     finally:
         release_lock("rss_fetch")
