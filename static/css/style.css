@@ -116,3 +116,9 @@ body{top:0!important}
 #google_translate_element .goog-te-gadget-simple{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:1px 4px}
 #google_translate_element .goog-te-menu-value span{color:#fff!important;border-left-color:rgba(255,255,255,.35)!important}
 #google_translate_element .goog-te-gadget-icon{display:none}
+
+/* ---------- Language switcher (topbar) ---------- */
+.lang-switch{display:inline-flex;gap:2px;background:rgba(255,255,255,.14);border-radius:999px;padding:2px}
+.lang-btn{border:0;background:transparent;color:inherit;font-size:.78rem;font-weight:600;padding:.18rem .6rem;border-radius:999px;cursor:pointer;line-height:1.5}
+.lang-btn.active{background:#D62828;color:#fff}
+.lang-btn:hover{opacity:.85}

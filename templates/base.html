@@ -1,5 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{% block title %}NewsHub{% endblock %}</title>
+<meta name="description" content="NewsHub — Latest News. Multiple Sources. One Place. हर बड़ी ख़बर, सभी बड़े sources से, एक ही जगह: हमारी अपनी brief, पूरा ब्योरा और original source का link।">
+<meta property="og:title" content="NewsHub — Latest News. Multiple Sources. One Place.">
+<meta property="og:description" content="Latest headlines from many trusted sources in one place — Hindi, English and Hinglish me padhein.">
+<meta property="og:type" content="website">
 {% load static %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Serif+Devanagari:wght@600;700;800&display=swap" rel="stylesheet">
 <link href="{% static 'vendor/bootstrap1.min.css' %}" rel="stylesheet"><link href="{% static 'vendor/bootstrap2.min.css' %}" rel="stylesheet"><link href="{% static 'vendor/bootstrap3.min.css' %}" rel="stylesheet">
@@ -7,11 +11,11 @@
 <body>
 <div class="topbar"><div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
 <span>{% now "l, d F Y" %} · भारत और दुनिया की ताज़ा ख़बरें</span>
-<span class="d-flex align-items-center gap-2 flex-wrap"><span class="d-none d-md-inline">पढ़ें:</span><span id="google_translate_element"></span>
+<span class="d-flex align-items-center gap-2 flex-wrap"><span class="d-none d-md-inline">पढ़ें:</span><span class="lang-switch" role="group" aria-label="Language"><button type="button" class="lang-btn" data-lang="en">English</button><button type="button" class="lang-btn" data-lang="hi">हिन्दी</button><button type="button" class="lang-btn" data-lang="hinglish">Hinglish</button></span><span id="google_translate_element" class="d-none"></span>
 <button id="theme-toggle" class="btn btn-sm" type="button" title="Switch theme">☀ Light</button><a href="/admin/">Login</a></span>
 </div></div>
 <header class="masthead"><div class="container d-flex align-items-center gap-3 flex-wrap">
-<a class="brand-word" href="/">News<span>Hub</span><span class="brand-tag">सच · साफ़ · सबसे पहले</span></a>
+<a class="brand-word" href="/">News<span>Hub</span><span class="brand-tag">Latest News · Multiple Sources · One Place</span></a>
 <form class="d-flex flex-grow-1 mx-lg-4" action="/search/" method="get" role="search"><input class="form-control me-2" name="q" placeholder="Search news… ख़बर खोजें" value="{{ q|default:'' }}" aria-label="Search news"><button class="btn btn-gold" type="submit">Search</button></form>
 <a href="/check-claim/" class="btn btn-outline-gold">Check a Claim</a>
 </div></header>
@@ -25,7 +29,7 @@
 <div class="mt-2"><a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/methodology/">Methodology</a> · <a href="/sources/">Sources</a> · <a href="/fact-check/">Fact Check</a> · <a href="/dashboard/">Dashboard</a> · <a href="/admin/">Admin</a></div>
 </div></footer>
 <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/theme.js' %}"></script><script src="{% static 'js/app.js' %}"></script><script src="{% static 'js/live.js' %}"></script>{% block scripts %}{% endblock %}
-<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE,autoDisplay:false},'google_translate_element');}</script>
+<script src="{% static 'js/theme.js' %}"></script><script src="{% static 'js/lang.js' %}"></script><script src="{% static 'js/app.js' %}"></script><script src="{% static 'js/live.js' %}"></script>{% block scripts %}{% endblock %}
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'auto',includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE,autoDisplay:false},'google_translate_element');}</script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body></html>
