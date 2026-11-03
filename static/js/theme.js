@@ -1,6 +1,6 @@
-// NewsHub theme: dark (black) default, light (white) toggle, remembered per device.
+// NewsHub theme: light (portal) default per the PPT design system, dark toggle, remembered per device.
 (function(){
-  var saved = localStorage.getItem('nh-theme') || 'dark';
+  var saved = localStorage.getItem('nh-theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('theme-toggle');

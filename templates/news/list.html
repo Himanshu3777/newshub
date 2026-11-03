@@ -1,21 +1,37 @@
-{% extends "base.html" %}{% block content %}<div class="container py-4"><div class="row g-4">
-<div class="col-lg-3"><div class="hero-panel"><div class="cat-label mb-3">Filters</div>
-<form method="get">
-<label class="small fw-semibold">Keyword</label><input name="q" class="form-control mb-3" placeholder="e.g. election, budget" value="{{q}}">
-<label class="small fw-semibold">Publisher</label><select name="source" class="form-select mb-3"><option value="">All publishers</option>{% for s in sources %}<option value="{{s.slug}}" {% if src == s.slug %}selected{% endif %}>{{s.name}}</option>{% endfor %}</select>
-<label class="small fw-semibold">Category</label><select name="category" class="form-select mb-3"><option value="">All categories</option>{% for c in categories %}<option value="{{c.slug}}" {% if cat == c.slug %}selected{% endif %}>{{c.name}}</option>{% endfor %}</select>
-<label class="small fw-semibold">Sort</label><select name="sort" class="form-select mb-3"><option value="-published_at">Newest</option><option value="-view_count">Most read</option></select>
-<div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="unconfirmed" value="1" id="unc"><label class="form-check-label small" for="unc">Show unconfirmed reports only</label></div>
-<button class="btn btn-gold w-100">Apply filters</button>
-<a href="/news/" class="btn btn-outline-gold w-100 mt-2">Reset</a>
-</form></div></div>
-<div class="col-lg-9"><h2 class="serif">{{page_obj.paginator.count}} stories</h2><div data-live-feed data-feed-style="row" data-latest-id="{{ page_obj.0.id|default:0 }}">
-{% for a in page_obj %}<div class="card mb-3"><div class="card-body">
+{% extends "base.html" %}{% block title %}{% if current_category %}{{current_category.name}} News{% else %}Latest News{% endif %} - NewsHub{% endblock %}{% block content %}<div class="container py-4">
+{% if current_category %}<h1 class="serif">{% for c in portal_categories %}{% if c.slug == current_category.slug %}{{c.hindi}} · {% endif %}{% endfor %}{{current_category.name}}</h1>{% else %}<h1 class="serif">ताज़ा ख़बरें · Latest News</h1>{% endif %}
+<p class="text-muted">{{page_obj.paginator.count}} stories · सभी प्रकाशकों से, सबसे नई पहले</p>
+<div class="d-flex flex-wrap gap-2 mb-4">
+<a class="chip {% if not current_category %}active{% endif %}" href="/news/">सभी · All</a>{% for c in categories %}<a class="chip {% if current_category and current_category.slug == c.slug %}active{% endif %}" href="/news/?category={{c.slug}}">{{c.name}}</a>{% endfor %}
+</div>
+<div class="row g-4">
+<div class="col-lg-9"><div data-live-feed data-feed-style="row" data-latest-id="{{ page_obj.0.id|default:0 }}">
+{% for a in page_obj %}{% if page_obj.number == 1 and forloop.first %}
+<div class="card mb-4"><a href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" class="card-img-top hero-lead-img" alt="NewsHub AI illustration"></a><div class="card-body">
 <span class="cat-label">{{a.category.name|default:"News"}}</span>
-<h4 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h4>
-<p class="small text-muted mb-2">{{a.ai_brief|truncatechars:190}}</p>
+<h3 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h3>
+<p class="text-muted mb-2">{{a.ai_brief|truncatechars:260}}</p>
 {% if a.is_unconfirmed %}<span class="source-note">{{a.source_note}}</span> {% endif %}
 <span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M Y, H:i"}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span>
-</div></div>{% empty %}<p class="text-muted">No stories match. Try different filters.</p>{% endfor %}
-</div><nav><ul class="pagination">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Previous</a></li>{% endif %}<li class="page-item disabled"><span class="page-link">Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</span></li>{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}&q={{q}}&category={{cat}}&source={{src}}">Next</a></li>{% endif %}</ul></nav>
-</div></div></div>{% endblock %}
+</div></div>
+{% else %}
+<div class="card mb-3"><div class="card-body"><div class="story-row">
+<a class="sr-thumb" href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" class="thumb-43" alt="NewsHub AI illustration" loading="lazy"></a>
+<div><span class="cat-label">{{a.category.name|default:"News"}}</span>
+<h4 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h4>
+<p class="small text-muted mb-2 sr-brief">{{a.ai_brief|truncatechars:190}}</p>
+{% if a.is_unconfirmed %}<span class="source-note">{{a.source_note}}</span> {% endif %}
+<span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M Y, H:i"}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span></div>
+</div></div></div>
+{% endif %}{% empty %}<p class="text-muted">Is section me abhi koi khabar nahi hai. Kuch der baad phir dekhein — khabrein har 30 minute me update hoti hain.</p>{% endfor %}
+</div>
+{% if page_obj.paginator.num_pages > 1 %}<nav><ul class="pagination">
+{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}&q={{q}}&category={{cat}}&source={{src}}&sort={{sort}}">‹ Prev</a></li>{% endif %}
+{% for n in page_range %}{% if n == "…" %}<li class="page-item disabled"><span class="page-link">…</span></li>{% elif n == page_obj.number %}<li class="page-item active"><span class="page-link">{{n}}</span></li>{% else %}<li class="page-item"><a class="page-link" href="?page={{n}}&q={{q}}&category={{cat}}&source={{src}}&sort={{sort}}">{{n}}</a></li>{% endif %}{% endfor %}
+{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}&q={{q}}&category={{cat}}&source={{src}}&sort={{sort}}">Next ›</a></li>{% endif %}
+</ul></nav>{% endif %}
+</div>
+<div class="col-lg-3"><div class="hero-panel"><div class="cat-label mb-3">Most Read · सबसे ज़्यादा पढ़ी गई</div>
+{% for a in most_read %}<div class="d-flex gap-3 py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="trend-num">{{forloop.counter}}</span><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title|truncatechars:85}}</a><br><span class="small text-muted">{{a.source.name}} · {{a.view_count}} views</span></div></div>{% empty %}<p class="text-muted small">Abhi koi story nahi hai.</p>{% endfor %}
+</div></div>
+</div></div>{% endblock %}

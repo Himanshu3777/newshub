@@ -1,26 +1,47 @@
 {% extends "base.html" %}{% block content %}
 {% if breaking %}<div class="ticker"><div class="container" data-live-ticker>{% for b in breaking %}<span class="badge-breaking">BREAKING</span><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{b.slug}}/">{{b.title}}</a> <span class="text-muted">· {{b.source.name}} · {{b.published_at|date:"H:i"}}</span>{% if not forloop.last %} &nbsp;|&nbsp; {% endif %}{% endfor %}</div></div>{% endif %}
 <div class="container py-4">
-<div class="row g-3">
-<div class="col-lg-8">{% if top_story %}<div class="hero-panel h-100">
-<div class="hero-img mb-3"><img src="/cover/{{top_story.id}}/" alt="NewsHub AI illustration"></div>
-<span class="cat-label">{{top_story.category.name|default:"Top Story"}}</span>
+{% if top_story %}
+<div class="row g-4">
+<div class="col-lg-6">
+<a href="/news/{{top_story.slug}}/"><img src="/cover/{{top_story.id}}/" class="hero-lead-img" alt="NewsHub AI illustration"></a>
+<span class="cat-label mt-2 d-inline-block">{{top_story.category.name|default:"Top Story"}}</span>
 <h1 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{top_story.slug}}/">{{top_story.title}}</a></h1>
 {% if top_story.is_unconfirmed %}<span class="source-note">{{top_story.source_note}}</span> {% endif %}
+<p class="text-muted mt-2">{{top_story.ai_brief|truncatechars:240}}</p>
 <span class="text-muted small">{{top_story.source.name}} · {{top_story.published_at|date:"d M Y, H:i"}} · <span data-rel-time="{{top_story.published_at|date:'c'}}"></span></span>
 <span class="float-end"><a href="{{top_story.source_url}}" target="_blank" rel="noopener">Read at publisher →</a></span>
-</div>{% else %}<div class="alert alert-info">No news fetched yet. Admin: run seed + fetch.</div>{% endif %}</div>
-<div class="col-lg-4"><div class="hero-panel h-100"><div class="cat-label mb-2">Trending Now <span class="live-dot"></span></div><div data-live-trending>
+</div>
+<div class="col-lg-3">
+{% for a in top_stories|slice:":2" %}<div class="mb-3">
+<a href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" class="thumb-43 rounded" alt="NewsHub AI illustration" loading="lazy"></a>
+<h5 class="serif mt-2"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h5>
+<span class="small text-muted">{{a.source.name}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span>
+</div>{% endfor %}
+</div>
+<div class="col-lg-3"><div class="hero-panel h-100"><div class="cat-label mb-2">Trending Now <span class="live-dot"></span></div><div data-live-trending>
 {% for t in trending %}<div class="d-flex gap-3 py-2 border-bottom" style="border-color:var(--nh-border)!important"><span class="trend-num">{{forloop.counter}}</span><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{t.slug}}/">{{t.title|truncatechars:90}}</a><br><span class="small text-muted">{{t.source.name}} · <span data-rel-time="{{t.published_at|date:'c'}}"></span></span></div></div>{% endfor %}
-</div></div></div></div>
-<div class="d-flex justify-content-between align-items-center mt-5"><h2 class="serif">Top stories</h2><a href="/news/">All news →</a></div>
-<div class="row g-3">{% for a in top_stories %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
-<h2 class="serif mt-5">Latest</h2>
-<div class="row g-3" data-live-feed data-feed-style="grid" data-latest-id="{{ latest.0.id|default:0 }}">{% for a in latest %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
-<div class="stats-strip mt-5"><div class="row text-center">
-<div class="col-md-3"><div class="num">{{stats.today}}</div><span class="text-muted">Stories today</span></div>
-<div class="col-md-3"><div class="num" style="color:#4ade80">{{stats.publishers}}</div><span class="text-muted">Publishers</span></div>
-<div class="col-md-3"><div class="num" style="color:var(--nh-brown-text)">{{stats.categories}}</div><span class="text-muted">Categories</span></div>
-<div class="col-md-3"><div class="num" style="color:var(--nh-gold)">{{stats.total}}</div><span class="text-muted">Stories collected · updated every 30 min</span></div>
-</div></div>
+</div></div></div>
+</div>
+{% else %}<div class="alert alert-info">No news available yet — abhi koi khabar uplabdh nahi hai. Admin: sources ko permitted mark karne par khabrein yahan dikhengi.</div>{% endif %}
+
+<div class="section-head mt-5"><h2>ताज़ा सुर्खियाँ · Latest Headlines</h2><a href="/news/">सभी ख़बरें →</a></div>
+<div class="row"><div class="col-lg-6"><ul class="headline-list">{% for a in latest|slice:":5" %}<li><span class="hl-time">{{a.published_at|date:"H:i"}}</span><a href="/news/{{a.slug}}/">{{a.title}}</a></li>{% empty %}<li class="text-muted">Abhi koi khabar nahi hai.</li>{% endfor %}</ul></div>
+<div class="col-lg-6"><ul class="headline-list">{% for a in latest|slice:"5:10" %}<li><span class="hl-time">{{a.published_at|date:"H:i"}}</span><a href="/news/{{a.slug}}/">{{a.title}}</a></li>{% endfor %}</ul></div></div>
+
+<div class="section-head mt-5"><h2>बड़ी ख़बरें · Top Stories</h2><a href="/news/">All news →</a></div>
+<div class="row g-3" data-live-feed data-feed-style="grid" data-latest-id="{{ latest.0.id|default:0 }}">{% for a in top_stories %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>
+
+{% for s in sections %}
+<div class="section-head mt-5"><h2>{{s.hindi}} · {{s.category.name}}</h2><a href="/news/?category={{s.category.slug}}">और देखें →</a></div>
+<div class="row g-4"><div class="col-md-5">{% with a=s.articles.0 %}
+<a href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" class="thumb-43 rounded" alt="NewsHub AI illustration" loading="lazy"></a>
+<h4 class="serif mt-2"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h4>
+<p class="small text-muted">{{a.ai_brief|truncatechars:160}}</p>
+<span class="small text-muted">{{a.source.name}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span>{% endwith %}</div>
+<div class="col-md-7"><ul class="headline-list">{% for a in s.articles|slice:"1:4" %}<li><span class="hl-time">{{a.published_at|date:"H:i"}}</span><a href="/news/{{a.slug}}/">{{a.title}}</a></li>{% endfor %}</ul></div></div>
+{% endfor %}
+
+{% if photo_strip %}<div class="section-head mt-5"><h2>फोटो स्टोरीज़ · Photo Stories</h2></div>
+<div class="strip-scroll">{% for a in photo_strip %}<a class="strip-item" href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" alt="NewsHub AI illustration" loading="lazy"><span>{{a.title|truncatechars:70}}</span></a>{% endfor %}</div>{% endif %}
 </div>{% endblock %}

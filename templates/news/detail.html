@@ -1,12 +1,50 @@
-{% extends "base.html" %}{% block title %}{{article.title}} - NewsHub{% endblock %}{% block content %}<div class="container py-4"><div class="row"><div class="col-lg-8">
-<span class="small text-muted">Home / {{article.category.name|default:"News"}}</span>
-<h1 class="serif mt-2">{{article.title}}</h1>
-<p class="text-muted">Original publisher: {{article.source.name}} &nbsp;·&nbsp; Published: {{article.published_at|date:"d M Y, H:i"}} &nbsp;·&nbsp; Category: {{article.category.name|default:"-"}}</p>
-{% if article.is_unconfirmed %}<span class="source-note">{{article.source_note}}</span>{% endif %}
-<img src="/cover/{{article.id}}/" class="img-fluid rounded my-3" alt="NewsHub AI illustration" style="width:100%">
-<div class="summary-box my-3"><div class="box-title">NEWSHUB BRIEF · WRITTEN BY AI FROM THE HEADLINE & PUBLIC FACTS</div><p class="mb-0 mt-2">{{article.ai_brief}}</p><p class="small text-muted mb-0 mt-2">Photo upar wali NewsHub ki apni AI illustration hai. Publisher ka text ya photo yahan use nahi hota — poori story ke liye original publisher par padhein.</p></div>
+{% extends "base.html" %}{% block title %}{{article.title}} - NewsHub{% endblock %}{% block content %}<div class="container py-4">
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+<li class="breadcrumb-item"><a href="/">Home</a></li>
+{% if article.category %}<li class="breadcrumb-item"><a href="/news/?category={{article.category.slug}}">{{article.category.name}}</a></li>{% endif %}
+<li class="breadcrumb-item active" aria-current="page">{{article.title|truncatechars:60}}</li>
+</ol></nav>
+<div class="row g-4"><div class="col-lg-8">
+<span class="cat-label">{{article.category.name|default:"News"}}</span>
+<h1 class="serif mt-1">{{article.title}}</h1>
+<div class="byline d-flex justify-content-between flex-wrap gap-2"><span><strong>{{article.source.name}}</strong>{% if article.author %} · {{article.author}}{% endif %} · Published: {{article.published_at|date:"d M Y, H:i"}} · Updated: {{article.updated_at|date:"d M Y, H:i"}}</span><span>{{article.view_count}} views</span></div>
+<div class="share-btns d-flex gap-2 mt-3">
+<a class="share-wa" target="_blank" rel="noopener" href="https://wa.me/?text={{article.title|urlencode}}%20{{request.build_absolute_uri|urlencode}}" title="Share on WhatsApp">WhatsApp</a>
+<a class="share-x" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text={{article.title|urlencode}}&url={{request.build_absolute_uri|urlencode}}" title="Share on X">X</a>
+<a class="share-fb" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{request.build_absolute_uri|urlencode}}" title="Share on Facebook">Facebook</a>
+<a class="share-tg" target="_blank" rel="noopener" href="https://t.me/share/url?url={{request.build_absolute_uri|urlencode}}&text={{article.title|urlencode}}" title="Share on Telegram">Telegram</a>
+<button class="share-copy" type="button" id="copy-link" title="Copy link">Copy link</button>
+</div>
+{% if article.is_unconfirmed %}<div class="mt-3"><span class="source-note">{{article.source_note}}</span></div>{% endif %}
+<figure class="my-3"><img src="/cover/{{article.id}}/" class="hero-lead-img" alt="NewsHub AI illustration">
+<figcaption class="small text-muted mt-1">Cover photo NewsHub ki apni AI illustration hai — publisher ki photo yahan use nahi hoti.</figcaption></figure>
+<div class="summary-box my-3"><div class="box-title">NEWSHUB BRIEF · HEADLINE AUR PUBLIC FACTS PAR AADHARIT HAMARI APNI REPORT</div>
+<div class="article-body mt-2">{{article.ai_brief|linebreaks}}</div>
+<p class="small text-muted mb-0 mt-2">Publisher ka text yahan copy nahi hota — poori story ke liye original publisher par padhein.</p></div>
+{% if related %}<div class="also-read my-3"><span class="cat-label">Also Read · यह भी पढ़ें</span><br><a class="fw-semibold text-decoration-none" style="color:var(--nh-text)" href="/news/{{related.0.slug}}/">{{related.0.title}}</a></div>{% endif %}
 <a href="{{article.source_url}}" target="_blank" rel="noopener" class="btn btn-gold btn-lg">Read at original publisher →</a>
 <a href="/contact/" class="btn btn-outline-gold btn-lg ms-2">Report an error</a>
 {% if article.is_unconfirmed %}<div class="source-note-box mt-4"><div class="box-title">SOURCE NOTE</div><p class="mb-0 mt-2">{{article.source_note}} The claim in this story comes from a viral or social source and has not been confirmed by any official source or publisher yet. If a publisher confirms it, this note is removed and the story is updated. We never present unconfirmed claims as fact.</p></div>{% endif %}
 {% if findings %}<div class="mt-4 small text-muted">This story was flagged by our sensitive-content check and is with moderators. Personal details are masked and never published.</div>{% endif %}
-</div><div class="col-lg-4"><div class="hero-panel"><div class="cat-label mb-3">Related Coverage</div>{% for a in related %}<div class="py-2 border-bottom" style="border-color:var(--nh-border)!important"><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title|truncatechars:100}}</a><br><span class="small text-muted">{{a.source.name}}</span></div>{% empty %}<p class="text-muted small">No related coverage yet.</p>{% endfor %}</div></div></div></div>{% endblock %}
+<div class="mt-4 d-flex flex-wrap gap-2">
+{% if article.category %}<a class="chip" href="/news/?category={{article.category.slug}}">#{{article.category.name}}</a>{% endif %}
+<a class="chip" href="/search/?q={{article.source.name|urlencode}}">#{{article.source.name}}</a>
+{% for t in article.tags.all %}<a class="chip" href="/search/?q={{t.name|urlencode}}">#{{t.name}}</a>{% endfor %}
+</div>
+<div class="share-sticky share-btns">
+<a class="share-wa flex-grow-1" target="_blank" rel="noopener" href="https://wa.me/?text={{article.title|urlencode}}%20{{request.build_absolute_uri|urlencode}}">WhatsApp</a>
+<a class="share-x flex-grow-1" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text={{article.title|urlencode}}&url={{request.build_absolute_uri|urlencode}}">X</a>
+<a class="share-fb flex-grow-1" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{request.build_absolute_uri|urlencode}}">Facebook</a>
+</div>
+{% if related %}<div class="section-head mt-5"><h2>सम्बंधित ख़बरें · Related News</h2></div>
+<div class="row g-3">{% for a in related|slice:":3" %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% endfor %}</div>{% endif %}
+</div>
+<div class="col-lg-4"><div class="hero-panel"><div class="cat-label mb-3">ताज़ा ख़बरें · Latest News</div>
+{% for a in latest5 %}<div class="d-flex gap-2 py-2 border-bottom" style="border-color:var(--nh-border)!important"><a href="/news/{{a.slug}}/" class="flex-shrink-0"><img src="/cover/{{a.id}}/" style="width:84px" class="thumb-43 rounded" alt="NewsHub AI illustration" loading="lazy"></a><div><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title|truncatechars:90}}</a><br><span class="small text-muted">{{a.source.name}} · <span data-rel-time="{{a.published_at|date:'c'}}"></span></span></div></div>{% empty %}<p class="text-muted small">Abhi koi aur khabar nahi hai.</p>{% endfor %}
+</div>
+<div class="hero-panel mt-3"><div class="cat-label mb-2">Publisher</div>
+<p class="mb-1 fw-semibold">{{article.source.name}}</p>
+<p class="small text-muted">Ye khabar sabse pehle is publisher ke paas aayi thi. NewsHub usi headline par apni brief likhta hai aur poori story ke liye aapko wahi bhejta hai.</p>
+<a href="{{article.source_url}}" target="_blank" rel="noopener" class="btn btn-outline-gold btn-sm">Publisher par padhein →</a></div>
+</div></div></div>{% endblock %}
+{% block scripts %}<script>var cl=document.getElementById('copy-link');if(cl){cl.addEventListener('click',function(){var b=this;navigator.clipboard.writeText(window.location.href).then(function(){b.textContent='Copied ✓';setTimeout(function(){b.textContent='Copy link';},2000);});});}</script>{% endblock %}

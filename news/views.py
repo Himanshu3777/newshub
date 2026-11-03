@@ -20,7 +20,10 @@ def article_list(request):
     if status: qs=qs.filter(verification_status=status)
     sort=request.GET.get("sort","-published_at"); qs=qs.order_by(sort if sort in ("-published_at","published_at","-view_count") else "-published_at")
     page=Paginator(qs,12).get_page(request.GET.get("page"))
-    return page, {"q":q,"cat":cat,"src":src,"status":status}
+    most_read=public_qs().order_by("-view_count","-published_at")[:5]
+    current_category=NewsCategory.objects.filter(slug=cat).first() if cat else None
+    page_range=list(page.paginator.get_elided_page_range(page.number,on_each_side=1,on_ends=1))
+    return page, {"q":q,"cat":cat,"src":src,"status":status,"sort":request.GET.get("sort",""),"most_read":most_read,"current_category":current_category,"page_range":page_range}
 
 def home(request):
     from django.utils import timezone
@@ -33,7 +36,17 @@ def home(request):
     trending=list(base.order_by("-view_count","-published_at")[:5])
     breaking=base.filter(is_breaking=True)[:3]
     stats={"today":base.filter(published_at__date=timezone.now().date()).count(),"total":base.count(),"publishers":NewsSource.objects.filter(is_active=True).count(),"categories":NC.objects.count()}
-    return render(request,"news/home.html",{"breaking":breaking,"latest":latest,"top_story":top_story,"top_stories":top_stories,"trending":trending,"stats":stats,"page_obj":None})
+    # Portal section blocks (PPT home page): lead + 3 links per main section.
+    from core.context_processors import NAV_ORDER, HINDI_LABELS
+    sections=[]
+    for slug in NAV_ORDER:
+        cat_obj=NC.objects.filter(slug=slug).first()
+        if not cat_obj: continue
+        arts=list(base.filter(category=cat_obj)[:4])
+        if arts: sections.append({"category":cat_obj,"hindi":HINDI_LABELS.get(slug,cat_obj.name),"articles":arts})
+        if len(sections)>=5: break
+    photo_strip=list(base[:8])
+    return render(request,"news/home.html",{"breaking":breaking,"latest":latest,"top_story":top_story,"top_stories":top_stories,"trending":trending,"stats":stats,"sections":sections,"photo_strip":photo_strip,"page_obj":None})
 
 def listing(request):
     page,ctx=article_list(request)
@@ -48,7 +61,8 @@ def detail(request,slug):
     NewsArticle.objects.filter(id=art.id).update(view_count=F("view_count")+1)
     reports=art.verification_reports.prefetch_related("evidence").all()
     related=public_qs().filter(category=art.category).exclude(id=art.id).select_related("source")[:4] if art.category else []
-    return render(request,"news/detail.html",{"article":art,"reports":reports,"related":related,"findings":art.sensitive_findings.all()})
+    latest5=public_qs().select_related("source","category").exclude(id=art.id)[:5]
+    return render(request,"news/detail.html",{"article":art,"reports":reports,"related":related,"latest5":latest5,"findings":art.sensitive_findings.all()})
 
 def search_page(request):
     page,ctx=article_list(request)

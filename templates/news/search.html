@@ -1,4 +1,24 @@
-{% extends "base.html" %}{% block content %}<div class="container py-4"><h2 class="serif">{{page_obj.paginator.count}} results{% if q %} for “{{q}}”{% endif %}</h2>
-<p class="text-muted">Search news and claims. Fake or misleading stories are removed from results — <a href="/fact-check/">see flagged stories</a>. Got a viral post instead? <a href="/check-claim/">Check a claim →</a></p>
-<form class="row g-2 mb-4" method="get" action="/search/"><div class="col-md-6"><input name="q" class="form-control" placeholder="Keyword or claim..." value="{{q}}"></div><div class="col-md-3"><select name="source" class="form-select"><option value="">All publishers</option>{% for s in sources %}<option value="{{s.slug}}" {% if src == s.slug %}selected{% endif %}>{{s.name}}</option>{% endfor %}</select></div><div class="col-md-3"><button class="btn btn-gold w-100">Search</button></div></form>
-<div class="row g-3">{% for a in page_obj %}<div class="col-md-4">{% include "news/_card.html" %}</div>{% empty %}<p class="text-muted">No results. Try another keyword, or check the claim directly if it came from social media.</p>{% endfor %}</div></div>{% endblock %}
+{% extends "base.html" %}{% block title %}Search - NewsHub{% endblock %}{% block content %}<div class="container py-4">
+<h1 class="serif">ख़बर खोजें · Search</h1>
+<form class="row g-2 mb-4 mt-2" method="get" action="/search/"><div class="col-md-8"><input name="q" class="form-control form-control-lg" placeholder="Keyword or claim... जैसे: election, budget, cricket" value="{{q}}"></div><div class="col-md-3"><button class="btn btn-gold btn-lg w-100">Search</button></div></form>
+<h2 class="serif h4">{{page_obj.paginator.count}} results{% if q %} for “{{q}}”{% endif %}</h2>
+<p class="text-muted">Fake or misleading stories are removed from results — <a href="/fact-check/">see flagged stories</a>. Got a viral post instead? <a href="/check-claim/">Check a claim →</a></p>
+<div class="row g-4"><div class="col-lg-9">
+{% for a in page_obj %}<div class="card mb-3"><div class="card-body"><div class="story-row">
+<a class="sr-thumb" href="/news/{{a.slug}}/"><img src="/cover/{{a.id}}/" class="thumb-43" alt="NewsHub AI illustration" loading="lazy"></a>
+<div><span class="cat-label">{{a.category.name|default:"News"}}</span>
+<h4 class="serif mt-1"><a class="text-decoration-none" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title}}</a></h4>
+<p class="small text-muted mb-2 sr-brief">{{a.ai_brief|truncatechars:190}}</p>
+{% if a.is_unconfirmed %}<span class="source-note">{{a.source_note}}</span> {% endif %}
+<span class="small text-muted">{{a.source.name}} · {{a.published_at|date:"d M Y, H:i"}}</span></div>
+</div></div></div>{% empty %}<p class="text-muted">Koi result nahi mila. Dusra keyword try karein — ya agar ye kisi viral post se aaya hai, to use <a href="/check-claim/">Check a Claim</a> par jaanch lein.</p>{% endfor %}
+{% if page_obj.paginator.num_pages > 1 %}<nav><ul class="pagination">
+{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}&q={{q}}">‹ Prev</a></li>{% endif %}
+{% for n in page_range %}{% if n == "…" %}<li class="page-item disabled"><span class="page-link">…</span></li>{% elif n == page_obj.number %}<li class="page-item active"><span class="page-link">{{n}}</span></li>{% else %}<li class="page-item"><a class="page-link" href="?page={{n}}&q={{q}}">{{n}}</a></li>{% endif %}{% endfor %}
+{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}&q={{q}}">Next ›</a></li>{% endif %}
+</ul></nav>{% endif %}
+</div>
+<div class="col-lg-3"><div class="hero-panel"><div class="cat-label mb-3">Most Read</div>
+{% for a in most_read %}<div class="py-2 border-bottom" style="border-color:var(--nh-border)!important"><a class="text-decoration-none fw-semibold" style="color:var(--nh-text)" href="/news/{{a.slug}}/">{{a.title|truncatechars:85}}</a><br><span class="small text-muted">{{a.source.name}}</span></div>{% empty %}<p class="text-muted small">Abhi koi story nahi hai.</p>{% endfor %}
+</div></div>
+</div></div>{% endblock %}

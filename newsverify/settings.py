@@ -31,7 +31,7 @@ MIDDLEWARE = [
     "core.middleware.SimpleRateLimitMiddleware",
 ]
 ROOT_URLCONF = "newsverify.urls"
-TEMPLATES = [{"BACKEND":"django.template.backends.django.DjangoTemplates","DIRS":[BASE_DIR/"templates"],"APP_DIRS":True,"OPTIONS":{"context_processors":["django.template.context_processors.request","django.contrib.auth.context_processors.auth","django.contrib.messages.context_processors.messages","core.context_processors.stats"]}}]
+TEMPLATES = [{"BACKEND":"django.template.backends.django.DjangoTemplates","DIRS":[BASE_DIR/"templates"],"APP_DIRS":True,"OPTIONS":{"context_processors":["django.template.context_processors.request","django.contrib.auth.context_processors.auth","django.contrib.messages.context_processors.messages","core.context_processors.stats","core.context_processors.portal_nav"]}}]
 WSGI_APPLICATION = "newsverify.wsgi.application"
 DATABASES = {"default":{"ENGINE":"django.db.backends.sqlite3","NAME":BASE_DIR/"db.sqlite3"}}
 DATABASE_URL = os.environ.get("DATABASE_URL","")
