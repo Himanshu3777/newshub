@@ -1,5 +1,9 @@
 from django.shortcuts import render, redirect
+from django import forms
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
 from news.models import NewsArticle
@@ -55,3 +59,21 @@ def check_claim_page(request):
             messages.error(request,"Please paste the full claim / post text (at least a sentence).")
     recent=ClaimSubmission.objects.all()[:8]
     return render(request,"core/check_claim.html",{"result":result,"recent":recent})
+
+class RegisterForm(UserCreationForm):
+    """Public reader registration (a normal account - never staff/admin)."""
+    email = forms.EmailField(required=False, help_text="Optional, sirf account recovery ke liye.")
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "email")
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+    form = RegisterForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        auth_login(request, user)
+        messages.success(request, f"Welcome to NewsHub, {user.username}! Tumhara account ban gaya hai aur tum login ho.")
+        return redirect("home")
+    return render(request, "core/register.html", {"form": form})

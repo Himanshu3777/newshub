@@ -12,7 +12,7 @@
 <div class="topbar"><div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
 <span>{% now "l, d F Y" %} · भारत और दुनिया की ताज़ा ख़बरें</span>
 <span class="d-flex align-items-center gap-2 flex-wrap"><span class="d-none d-md-inline">पढ़ें:</span><span class="lang-switch" role="group" aria-label="Language"><button type="button" class="lang-btn" data-lang="en">English</button><button type="button" class="lang-btn" data-lang="hi">हिन्दी</button><button type="button" class="lang-btn" data-lang="hinglish">Hinglish</button></span><span id="google_translate_element" class="d-none"></span>
-<button id="theme-toggle" class="btn btn-sm" type="button" title="Switch theme">☀ Light</button><a href="/admin/">Login</a></span>
+<button id="theme-toggle" class="btn btn-sm" type="button" title="Switch theme">☀ Light</button>{% if user.is_authenticated %}<span class="d-none d-md-inline">नमस्ते, {{ user.username }}</span><form method="post" action="/accounts/logout/" class="d-inline m-0">{% csrf_token %}<button type="submit" class="btn btn-sm">Logout</button></form>{% if user.is_staff %}<a href="/admin/">Admin</a>{% endif %}{% else %}<a href="/accounts/login/">Login</a><a href="/accounts/register/">Register</a>{% endif %}</span>
 </div></div>
 <header class="masthead"><div class="container d-flex align-items-center gap-3 flex-wrap">
 <a class="brand-word" href="/">News<span>Hub</span><span class="brand-tag">Latest News · Multiple Sources · One Place</span></a>
@@ -29,7 +29,7 @@
 <div class="mt-2"><a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/methodology/">Methodology</a> · <a href="/sources/">Sources</a> · <a href="/fact-check/">Fact Check</a> · <a href="/dashboard/">Dashboard</a> · <a href="/admin/">Admin</a></div>
 </div></footer>
 <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/theme.js' %}"></script><script src="{% static 'js/lang.js' %}"></script><script src="{% static 'js/app.js' %}"></script><script src="{% static 'js/live.js' %}"></script>{% block scripts %}{% endblock %}
+<script src="{% static 'js/theme.js' %}"></script><script src="{% static 'js/lang.js' %}"></script><script src="{% static 'js/newtab.js' %}"></script><script src="{% static 'js/app.js' %}"></script><script src="{% static 'js/live.js' %}"></script>{% block scripts %}{% endblock %}
 <script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'auto',includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE,autoDisplay:false},'google_translate_element');}</script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body></html>

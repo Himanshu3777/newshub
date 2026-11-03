@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Register — NewsHub{% endblock %}{% block content %}
+<div class="container py-4"><div class="row justify-content-center"><div class="col-md-6 col-lg-5">
+<div class="hero-panel">
+<div class="cat-label mb-2">Reader Account</div>
+<h1 class="serif mb-3">Register</h1>
+<p class="text-muted">Free account banayein — ye ek normal reader account hai.</p>
+<form method="post">{% csrf_token %}
+{% for field in form %}
+<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+<input class="form-control" type="{% if 'password' in field.name %}password{% elif field.name == 'email' %}email{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" {% if field.name == 'username' %}autocomplete="username"{% endif %} {% if field.field.required %}required{% endif %}>
+{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+{% for e in field.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+</div>
+{% endfor %}
+<button class="btn btn-gold btn-lg w-100" type="submit">Create my account</button>
+</form>
+<p class="text-muted mt-3 mb-0">Pehle se account hai? <a href="/accounts/login/">Login karein</a></p>
+</div></div></div></div>
+{% endblock %}

@@ -65,6 +65,9 @@ CELERY_TASK_ALWAYS_EAGER=os.environ.get("CELERY_TASK_ALWAYS_EAGER","True")=="Tru
 # Empty = trigger disabled. Set the same value in Render env and in the
 # scheduler's URL; never commit a real value.
 FETCH_TRIGGER_TOKEN=os.environ.get("FETCH_TRIGGER_TOKEN","")
+# Public reader accounts: after login/logout land back on the homepage.
+LOGIN_REDIRECT_URL="/"
+LOGOUT_REDIRECT_URL="/"
 GOOGLE_FACTCHECK_API_KEY=os.environ.get("GOOGLE_FACTCHECK_API_KEY","")
 GEMINI_API_KEY=os.environ.get("GEMINI_API_KEY","")
 MISTRAL_API_KEY=os.environ.get("MISTRAL_API_KEY","")
